@@ -9,6 +9,7 @@ import Friends from './pages/Friends';
 import Earn from './pages/Earn';
 
 const App: React.FC = () => {
+  // Use production manifest URL
   const manifestUrl = 'https://crypto-airdrop-paws.netlify.app/tonconnect-manifest.json';
 
   return (

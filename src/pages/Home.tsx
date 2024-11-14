@@ -2,10 +2,12 @@ import React, { useEffect } from 'react';
 import { TonConnectButton, useTonAddress } from '@tonconnect/ui-react';
 import { PawPrint } from 'lucide-react';
 import { useWalletStore } from '../store/useWalletStore';
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
   const userAddress = useTonAddress();
-  const setAddress = useWalletStore((state) => state.setAddress);
+  const { setAddress, points } = useWalletStore();
+  const navigate = useNavigate();
 
   useEffect(() => {
     setAddress(userAddress);
@@ -25,16 +27,28 @@ const Home = () => {
         <div className="mb-4">
           <TonConnectButton />
         </div>
-        <div className="text-gray-400">NEWCOMER RANK</div>
+        {userAddress && (
+          <div className="mt-4">
+            <div className="text-xl font-bold text-blue-500">{points} PAWS</div>
+            <div className="text-gray-400">Current Balance</div>
+          </div>
+        )}
+        <div className="text-gray-400 mt-2">NEWCOMER RANK</div>
       </div>
 
       <div className="space-y-4">
-        <button className="w-full bg-gray-800 hover:bg-gray-700 p-4 rounded-lg flex items-center justify-between">
-          <span>Join our community</span>
+        <button 
+          onClick={() => navigate('/tasks')}
+          className="w-full bg-gray-800 hover:bg-gray-700 p-4 rounded-lg flex items-center justify-between"
+        >
+          <span>Complete tasks</span>
           <span>→</span>
         </button>
-        <button className="w-full bg-gray-800 hover:bg-gray-700 p-4 rounded-lg flex items-center justify-between">
-          <span>Check your rewards</span>
+        <button 
+          onClick={() => navigate('/friends')}
+          className="w-full bg-gray-800 hover:bg-gray-700 p-4 rounded-lg flex items-center justify-between"
+        >
+          <span>Invite friends</span>
           <span>→</span>
         </button>
       </div>

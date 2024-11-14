@@ -55,8 +55,17 @@ async function connectDB() {
   }
 }
 
-app.use(cors());
+app.use(cors({
+  origin: ['https://crypto-airdrop-paws.netlify.app', 'http://localhost:5173'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 app.use(express.json());
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'healthy' });
+});
 
 // Middleware to verify TON wallet address
 const verifyWallet = async (req, res, next) => {

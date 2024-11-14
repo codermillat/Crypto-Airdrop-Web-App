@@ -1,7 +1,8 @@
 {
-  "url": "https://paws-crypto.netlify.app",
+  "url": "https://crypto-airdrop-paws.netlify.app/",
   "name": "PAWS Crypto",
   "iconUrl": "https://cdn-icons-png.flaticon.com/512/1138/1138485.png",
-  "termsOfUseUrl": "https://paws-crypto.netlify.app/terms",
-  "privacyPolicyUrl": "https://paws-crypto.netlify.app/privacy"
+  "termsOfUseUrl": "https://crypto-airdrop-paws.netlify.app/terms",
+  "privacyPolicyUrl": "https://crypto-airdrop-paws.netlify.app/privacy",
+  "manifestVersion": "0.4"
 }
