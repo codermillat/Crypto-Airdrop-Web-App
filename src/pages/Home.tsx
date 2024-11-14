@@ -1,30 +1,60 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { TonConnectButton, useTonAddress } from '@tonconnect/ui-react';
 import { PawPrint } from 'lucide-react';
 import { useWalletStore } from '../store/useWalletStore';
 import { useNavigate } from 'react-router-dom';
+import UsernameModal from '../components/UsernameModal';
+import api from '../utils/api';
 
 const Home = () => {
   const userAddress = useTonAddress();
-  const { setAddress, points } = useWalletStore();
+  const { 
+    setAddress, 
+    points, 
+    username,
+    isRegistered,
+    setUsername,
+    setPoints,
+    setIsRegistered 
+  } = useWalletStore();
+  const [showUsernameModal, setShowUsernameModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    setAddress(userAddress);
-  }, [userAddress, setAddress]);
+    const initUser = async () => {
+      if (userAddress) {
+        setAddress(userAddress);
+        try {
+          const response = await api.get('/user');
+          const { username, points, isRegistered } = response.data;
+          setUsername(username);
+          setPoints(points || 0);
+          setIsRegistered(isRegistered);
+          
+          if (!isRegistered) {
+            setShowUsernameModal(true);
+          }
+        } catch (error) {
+          console.error('Failed to fetch user data:', error);
+        }
+      }
+    };
+
+    initUser();
+  }, [userAddress]);
 
   return (
     <div className="p-4">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">PAWS</h1>
         <div className="flex items-center space-x-2">
-          <span className="text-blue-500">✓</span>
+          {username && <span className="text-blue-500">@{username}</span>}
         </div>
       </div>
 
       <div className="bg-gray-900 rounded-lg p-8 text-center mb-6">
         <PawPrint className="w-16 h-16 mx-auto mb-4 text-white" />
-        <div className="mb-4">
+        <div className="mb-4 flex justify-center">
           <TonConnectButton />
         </div>
         {userAddress && (
@@ -33,7 +63,9 @@ const Home = () => {
             <div className="text-gray-400">Current Balance</div>
           </div>
         )}
-        <div className="text-gray-400 mt-2">NEWCOMER RANK</div>
+        <div className="text-gray-400 mt-2">
+          {points >= 10000 ? 'EXPERT' : points >= 5000 ? 'ADVANCED' : 'NEWCOMER'} RANK
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -52,6 +84,11 @@ const Home = () => {
           <span>→</span>
         </button>
       </div>
+
+      <UsernameModal 
+        isOpen={showUsernameModal} 
+        onClose={() => setShowUsernameModal(false)} 
+      />
     </div>
   );
 };

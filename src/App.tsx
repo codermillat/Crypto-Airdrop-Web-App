@@ -7,28 +7,34 @@ import Tasks from './pages/Tasks';
 import Leaderboard from './pages/Leaderboard';
 import Friends from './pages/Friends';
 import Earn from './pages/Earn';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const App: React.FC = () => {
   // Use production manifest URL
   const manifestUrl = 'https://crypto-airdrop-paws.netlify.app/tonconnect-manifest.json';
 
   return (
-    <TonConnectUIProvider manifestUrl={manifestUrl}>
-      <BrowserRouter>
-        <div className="min-h-screen bg-black text-white">
-          <div className="max-w-lg mx-auto pb-20">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/tasks" element={<Tasks />} />
-              <Route path="/leaderboard" element={<Leaderboard />} />
-              <Route path="/friends" element={<Friends />} />
-              <Route path="/earn" element={<Earn />} />
-            </Routes>
-            <Navigation />
+    <ErrorBoundary>
+      <TonConnectUIProvider manifestUrl={manifestUrl} connectRequestParameters={{
+        state: 'ready',
+        returnStrategy: 'back'
+      }}>
+        <BrowserRouter>
+          <div className="min-h-screen bg-black text-white">
+            <div className="max-w-lg mx-auto pb-20">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/tasks" element={<Tasks />} />
+                <Route path="/leaderboard" element={<Leaderboard />} />
+                <Route path="/friends" element={<Friends />} />
+                <Route path="/earn" element={<Earn />} />
+              </Routes>
+              <Navigation />
+            </div>
           </div>
-        </div>
-      </BrowserRouter>
-    </TonConnectUIProvider>
+        </BrowserRouter>
+      </TonConnectUIProvider>
+    </ErrorBoundary>
   );
 };
 

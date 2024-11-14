@@ -3,19 +3,28 @@ import { persist } from 'zustand/middleware';
 
 interface WalletState {
   address: string | null;
+  username: string | null;
   balance: number;
   points: number;
+  referralCode: string | null;
+  isRegistered: boolean;
   setAddress: (address: string | null) => void;
+  setUsername: (username: string | null) => void;
   setBalance: (balance: number) => void;
   setPoints: (points: number) => void;
+  setReferralCode: (code: string | null) => void;
+  setIsRegistered: (status: boolean) => void;
 }
 
 export const useWalletStore = create<WalletState>()(
   persist(
     (set) => ({
       address: null,
+      username: null,
       balance: 0,
       points: 0,
+      referralCode: null,
+      isRegistered: false,
       setAddress: (address) => {
         set({ address });
         if (address) {
@@ -24,8 +33,11 @@ export const useWalletStore = create<WalletState>()(
           localStorage.removeItem('wallet_address');
         }
       },
+      setUsername: (username) => set({ username }),
       setBalance: (balance) => set({ balance }),
       setPoints: (points) => set({ points }),
+      setReferralCode: (code) => set({ referralCode: code }),
+      setIsRegistered: (status) => set({ isRegistered: status }),
     }),
     {
       name: 'wallet-storage',
