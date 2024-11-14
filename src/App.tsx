@@ -8,9 +8,8 @@ import Leaderboard from './pages/Leaderboard';
 import Friends from './pages/Friends';
 import Earn from './pages/Earn';
 
-function App() {
-  // Use local manifest during development
-  const manifestUrl = '/tonconnect-manifest.json';
+const App: React.FC = () => {
+  const manifestUrl = 'https://crypto-airdrop-paws.netlify.app/tonconnect-manifest.json';
 
   return (
     <TonConnectUIProvider manifestUrl={manifestUrl}>
@@ -30,4 +29,6 @@ function App() {
       </BrowserRouter>
     </TonConnectUIProvider>
   );
-}
+};
+
+export default App;
