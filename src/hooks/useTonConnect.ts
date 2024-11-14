@@ -1,11 +1,12 @@
 import { useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useWalletStore } from '../store/useWalletStore';
 import { fetchUser } from '../utils/api';
+import { useWallet } from '../providers/WalletProvider';
 
 export const useTonConnect = () => {
   const [tonConnectUI] = useTonConnectUI();
-  const userAddress = useTonAddress();
+  const { isConnected, address, isInitialized } = useWallet();
   const { 
     setAddress, 
     setPoints, 
@@ -14,42 +15,55 @@ export const useTonConnect = () => {
     setReferralCode 
   } = useWalletStore();
 
-  useEffect(() => {
-    const handleConnection = async () => {
-      if (userAddress) {
-        try {
-          setAddress(userAddress);
-          const userData = await fetchUser();
-          setPoints(userData.points || 0);
-          setUsername(userData.username);
-          setIsRegistered(userData.isRegistered);
-          setReferralCode(userData.referralCode);
-        } catch (error) {
-          console.error('Failed to handle wallet connection:', error);
-          // Reset state on error
-          setAddress(null);
-          setPoints(0);
-          setUsername(null);
-          setIsRegistered(false);
-          setReferralCode(null);
-        }
-      } else {
-        // Reset state on disconnect
-        setAddress(null);
-        setPoints(0);
-        setUsername(null);
-        setIsRegistered(false);
-        setReferralCode(null);
-      }
-    };
+  const resetWalletState = useCallback(() => {
+    setAddress(null);
+    setPoints(0);
+    setUsername(null);
+    setIsRegistered(false);
+    setReferralCode(null);
+  }, [setAddress, setPoints, setUsername, setIsRegistered, setReferralCode]);
 
-    handleConnection();
-  }, [userAddress]);
+  const handleConnection = useCallback(async () => {
+    if (!isInitialized || !isConnected || !address) {
+      resetWalletState();
+      return;
+    }
+
+    try {
+      setAddress(address);
+      const userData = await fetchUser();
+      setPoints(userData.points || 0);
+      setUsername(userData.username);
+      setIsRegistered(userData.isRegistered);
+      setReferralCode(userData.referralCode);
+    } catch (error) {
+      console.error('Failed to handle wallet connection:', error);
+      resetWalletState();
+    }
+  }, [isInitialized, isConnected, address, resetWalletState, setAddress, setPoints, setUsername, setIsRegistered, setReferralCode]);
+
+  useEffect(() => {
+    if (isInitialized) {
+      handleConnection();
+    }
+  }, [isInitialized, handleConnection]);
+
+  const disconnect = useCallback(async () => {
+    if (!tonConnectUI) return;
+    
+    try {
+      await tonConnectUI.disconnect();
+      resetWalletState();
+    } catch (error) {
+      console.error('Failed to disconnect wallet:', error);
+    }
+  }, [tonConnectUI, resetWalletState]);
 
   return {
-    connected: !!userAddress,
-    address: userAddress,
-    disconnect: () => tonConnectUI.disconnect()
+    connected: isConnected,
+    address,
+    isInitialized,
+    disconnect
   };
 };
 

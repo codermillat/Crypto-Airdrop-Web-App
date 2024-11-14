@@ -5,49 +5,39 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import User from './models/User.js';
 import Task from './models/Task.js';
+import { initialTasks } from './data/initialTasks.js';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/paws-crypto';
 
-// Connect to MongoDB Atlas
+// Connect to MongoDB and initialize data
 async function connectDB() {
   try {
     await connect(MONGODB_URI);
-    console.log('Connected to MongoDB Atlas');
+    console.log('Connected to MongoDB');
     
     // Create initial tasks if none exist
     const tasksCount = await Task.countDocuments();
     if (tasksCount === 0) {
-      await Task.create([
-        {
-          title: 'Connect Wallet',
-          reward: 100,
-          icon: '💎',
-          type: 'limited',
-          requirements: ['Connect your TON wallet'],
-          active: true
-        },
-        {
-          title: 'Join Community',
-          reward: 250,
-          icon: '🌟',
-          type: 'limited',
-          requirements: ['Join our Telegram group'],
-          active: true
-        },
-        {
-          title: 'Share on Twitter',
-          reward: 500,
-          icon: '🐦',
-          type: 'limited',
-          requirements: ['Share about PAWS on Twitter'],
-          active: true
-        }
-      ]);
+      await Task.insertMany(initialTasks);
       console.log('Initial tasks created');
+    }
+
+    // Create test user if none exist
+    const usersCount = await User.countDocuments();
+    if (usersCount === 0) {
+      await User.create({
+        address: 'EQAAFhjXzKuQ5N0c96nsdZQWATcJm909LYSaCAvWFxVJP80D',
+        username: 'test_user',
+        points: 1000,
+        referralCode: 'TEST123',
+        referralCount: 5,
+        completedTasks: []
+      });
+      console.log('Test user created');
     }
   } catch (err) {
     console.error('MongoDB connection error:', err);
@@ -78,7 +68,8 @@ const verifyWallet = async (req, res, next) => {
     if (!user) {
       user = await User.create({ 
         address,
-        referralCode: Math.random().toString(36).substring(2, 8).toUpperCase()
+        referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+        points: 0
       });
     }
     req.user = user;
@@ -107,7 +98,7 @@ app.get('/api/leaderboard', async (req, res) => {
     const users = await User.find()
       .sort({ points: -1 })
       .limit(100)
-      .select('address points');
+      .select('address points username');
     res.json(users);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch leaderboard' });
@@ -169,6 +160,16 @@ app.post('/api/referral', verifyWallet, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: 'Failed to process referral' });
+  }
+});
+
+app.get('/api/user', verifyWallet, async (req, res) => {
+  try {
+    const user = await User.findOne({ address: req.headers.address })
+      .select('-__v');
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch user data' });
   }
 });
 
