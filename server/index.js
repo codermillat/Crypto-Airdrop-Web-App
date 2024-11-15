@@ -16,25 +16,40 @@ const app = express();
 const port = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
+// Database initialization function
+async function initializeDatabase() {
+  try {
+    // Clear existing data
+    await Promise.all([
+      Task.deleteMany({}),
+      User.deleteMany({})
+    ]);
+
+    // Insert initial data
+    await Promise.all([
+      Task.insertMany(initialTasks),
+      User.insertMany(initialUsers)
+    ]);
+
+    console.log('Database initialized successfully');
+  } catch (error) {
+    console.error('Database initialization failed:', error);
+    throw error;
+  }
+}
+
 // Database connection with retry mechanism
 async function connectDB(retries = 5) {
   for (let i = 0; i < retries; i++) {
     try {
-      await connect(MONGODB_URI);
+      await connect(MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true
+      });
       console.log('Connected to MongoDB');
       
-      // Initialize data if needed
-      const tasksCount = await Task.countDocuments();
-      if (tasksCount === 0) {
-        await Task.insertMany(initialTasks);
-        console.log('Initial tasks created');
-      }
-
-      const usersCount = await User.countDocuments();
-      if (usersCount === 0) {
-        await User.insertMany(initialUsers);
-        console.log('Initial users created');
-      }
+      // Initialize database with sample data
+      await initializeDatabase();
       
       return true;
     } catch (err) {
@@ -63,6 +78,10 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Protected routes
+app.use('/api/admin', verifyAdmin, adminRoutes);
+app.use('/api/data', verifyWallet, dataRoutes);
+
 // User routes
 app.get('/api/user', verifyWallet, async (req, res) => {
   try {
@@ -76,29 +95,6 @@ app.get('/api/user', verifyWallet, async (req, res) => {
   }
 });
 
-app.post('/api/register', verifyWallet, async (req, res) => {
-  try {
-    const { username } = req.body;
-    if (!username || username.length < 3 || username.length > 20) {
-      return res.status(400).json({ error: 'Invalid username' });
-    }
-
-    const existingUser = await User.findOne({ username });
-    if (existingUser) {
-      return res.status(400).json({ error: 'Username already taken' });
-    }
-
-    const user = await User.findByIdAndUpdate(
-      req.user._id,
-      { username, isRegistered: true },
-      { new: true }
-    );
-    res.json({ user });
-  } catch (error) {
-    res.status(500).json({ error: 'Registration failed' });
-  }
-});
-
 // Task routes
 app.get('/api/tasks', verifyWallet, async (req, res) => {
   try {
@@ -108,10 +104,6 @@ app.get('/api/tasks', verifyWallet, async (req, res) => {
     res.status(500).json({ error: 'Failed to fetch tasks' });
   }
 });
-
-// Protected routes
-app.use('/api/admin', verifyAdmin, adminRoutes);
-app.use('/api/data', verifyWallet, dataRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
