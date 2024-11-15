@@ -46,13 +46,20 @@ api.interceptors.response.use(
   }
 );
 
-export const fetchTasks = () => api.get('/tasks');
-export const fetchLeaderboard = () => api.get('/data/leaderboard');
+// Auth endpoints
+export const registerWallet = (address: string) => api.post('/auth/wallet', { address });
+export const registerUser = (username: string, telegramId?: string) => 
+  api.post('/auth/register', { username, telegramId });
+
+// User endpoints
 export const fetchUser = () => api.get('/user');
-export const claimReward = (taskId: string) => api.post('/claim-reward', { taskId });
-export const submitReferral = (referralCode: string) => api.post('/referral', { referralCode });
-export const registerUser = (username: string) => api.post('/register', { username });
-export const getReferralCode = () => api.get('/referral-code');
+export const fetchTasks = () => api.get('/user/tasks');
+export const claimReward = (taskId: string) => api.post('/user/claim-reward', { taskId });
+
+// Data endpoints
+export const fetchLeaderboard = () => api.get('/data/leaderboard');
+export const submitReferral = (referralCode: string) => api.post('/data/referral', { referralCode });
+export const getReferralCode = () => api.get('/data/referral-code');
 export const fetchAllData = () => api.get('/data/all');
 
 export default api;

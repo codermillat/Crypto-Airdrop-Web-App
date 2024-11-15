@@ -1,6 +1,7 @@
 import React, { createContext, useContext, ReactNode, useEffect, useState, useCallback } from 'react';
 import { useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
 import { useWalletStore } from '../store/useWalletStore';
+import { registerWallet } from '../utils/api';
 
 interface WalletContextType {
   isConnected: boolean;
@@ -31,7 +32,21 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
   const [error, setError] = useState<Error | null>(null);
   const [tonConnectUI] = useTonConnectUI();
   const userAddress = useTonAddress();
-  const { setAddress, resetWalletState } = useWalletStore();
+  const { setAddress, setPoints, setUsername, setIsRegistered, setReferralCode, resetWalletState } = useWalletStore();
+
+  // Register or fetch wallet data
+  const registerOrFetchWallet = async (address: string) => {
+    try {
+      const userData = await registerWallet(address);
+      setPoints(userData.points);
+      setUsername(userData.username);
+      setIsRegistered(!!userData.username);
+      setReferralCode(userData.referralCode);
+    } catch (err) {
+      console.error('Failed to register/fetch wallet:', err);
+      throw err;
+    }
+  };
 
   // Initialize TonConnect
   useEffect(() => {
@@ -46,7 +61,6 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
 
         setError(null);
         
-        // Wait for TonConnect to be ready
         await new Promise<void>((resolve, reject) => {
           let attempts = 0;
           const maxAttempts = 50;
@@ -100,6 +114,7 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
       if (userAddress) {
         setAddress(userAddress);
         localStorage.setItem('wallet_address', userAddress);
+        registerOrFetchWallet(userAddress).catch(console.error);
       } else {
         resetWalletState();
         localStorage.removeItem('wallet_address');

@@ -2,70 +2,36 @@ import express from 'express';
 import { connect } from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import authRoutes from './routes/auth.js';
 import adminRoutes from './routes/admin.js';
 import dataRoutes from './routes/data.js';
-import { verifyWallet, verifyAdmin } from './middleware/auth.js';
-import User from './models/User.js';
-import Task from './models/Task.js';
-import { initialTasks } from './data/initialTasks.js';
-import { initialUsers } from './data/initialUsers.js';
+import userRoutes from './routes/user.js';
+import { verifyWallet } from './middleware/auth.js';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
-// Database initialization function
-async function initializeDatabase() {
+// Database connection
+async function connectDB() {
   try {
-    // Clear existing data
-    await Promise.all([
-      Task.deleteMany({}),
-      User.deleteMany({})
-    ]);
-
-    // Insert initial data
-    await Promise.all([
-      Task.insertMany(initialTasks),
-      User.insertMany(initialUsers)
-    ]);
-
-    console.log('Database initialized successfully');
-  } catch (error) {
-    console.error('Database initialization failed:', error);
-    throw error;
-  }
-}
-
-// Database connection with retry mechanism
-async function connectDB(retries = 5) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      await connect(MONGODB_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-      });
-      console.log('Connected to MongoDB');
-      
-      // Initialize database with sample data
-      await initializeDatabase();
-      
-      return true;
-    } catch (err) {
-      console.error(`MongoDB connection attempt ${i + 1} failed:`, err);
-      if (i === retries - 1) {
-        console.error('Max retries reached. Exiting...');
-        process.exit(1);
-      }
-      await new Promise(resolve => setTimeout(resolve, 5000));
-    }
+    await connect(MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    });
+    console.log('Connected to MongoDB');
+  } catch (err) {
+    console.error('MongoDB connection error:', err);
+    process.exit(1);
   }
 }
 
 // CORS configuration
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://crypto-airdrop-paws.netlify.app'],
+  origin: [FRONTEND_URL],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'address']
@@ -78,37 +44,28 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Protected routes
-app.use('/api/admin', verifyAdmin, adminRoutes);
+// API routes
+app.use('/api/auth', authRoutes);
+app.use('/api/admin', verifyWallet, adminRoutes);
 app.use('/api/data', verifyWallet, dataRoutes);
-
-// User routes
-app.get('/api/user', verifyWallet, async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch user data' });
-  }
-});
-
-// Task routes
-app.get('/api/tasks', verifyWallet, async (req, res) => {
-  try {
-    const tasks = await Task.find({ isActive: true });
-    res.json(tasks);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch tasks' });
-  }
-});
+app.use('/api/user', verifyWallet, userRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);
-  res.status(500).json({ error: 'Internal server error' });
+  res.status(err.status || 500).json({ 
+    error: err.message || 'Internal server error',
+    status: err.status || 500
+  });
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ 
+    error: 'Resource not found',
+    status: 404,
+    path: req.path
+  });
 });
 
 // Start server
