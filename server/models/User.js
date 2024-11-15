@@ -6,6 +6,11 @@ const userSchema = new Schema({
     required: true,
     unique: true,
   },
+  username: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
   points: {
     type: Number,
     default: 0,
@@ -14,7 +19,11 @@ const userSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Task',
   }],
-  referralCode: String,
+  referralCode: {
+    type: String,
+    required: true,
+    unique: true
+  },
   referredBy: {
     type: Schema.Types.ObjectId,
     ref: 'User',
@@ -22,6 +31,15 @@ const userSchema = new Schema({
   referralCount: {
     type: Number,
     default: 0,
+  },
+  isRegistered: {
+    type: Boolean,
+    default: false
+  },
+  lastDailyReward: Date,
+  claimedCommunityReward: {
+    type: Boolean,
+    default: false
   },
   createdAt: {
     type: Date,

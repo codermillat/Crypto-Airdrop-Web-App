@@ -12,8 +12,8 @@ const taskSchema = new Schema({
   icon: String,
   type: {
     type: String,
-    enum: ['limited', 'in-game', 'partners'],
-    default: 'limited',
+    enum: ['onboarding', 'social', 'defi', 'daily'],
+    required: true
   },
   requirements: [{
     type: String,

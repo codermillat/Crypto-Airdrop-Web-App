@@ -40,18 +40,13 @@ async function connectDB() {
 }
 
 app.use(cors({
-  origin: ['https://crypto-airdrop-paws.netlify.app'],
+  origin: ['https://crypto-airdrop-paws.netlify.app', 'http://localhost:5173'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
 app.use(express.json());
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'healthy' });
-});
-
-// Middleware to verify TON wallet address
+// Middleware to verify wallet address
 const verifyWallet = async (req, res, next) => {
   const { address } = req.headers;
   if (!address) {
@@ -63,7 +58,8 @@ const verifyWallet = async (req, res, next) => {
       user = await User.create({ 
         address,
         referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
-        points: 0
+        points: 0,
+        completedTasks: []
       });
     }
     req.user = user;
@@ -164,6 +160,79 @@ app.get('/api/user', verifyWallet, async (req, res) => {
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch user data' });
+  }
+});
+
+app.post('/api/register', verifyWallet, async (req, res) => {
+  const { username } = req.body;
+  try {
+    const existingUser = await User.findOne({ username });
+    if (existingUser) {
+      return res.status(400).json({ error: 'Username already taken' });
+    }
+
+    req.user.username = username;
+    req.user.isRegistered = true;
+    await req.user.save();
+
+    res.json({ success: true, user: req.user });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to register user' });
+  }
+});
+
+app.get('/api/referral-code', verifyWallet, async (req, res) => {
+  try {
+    res.json({ code: req.user.referralCode });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get referral code' });
+  }
+});
+
+app.get('/api/rewards', verifyWallet, async (req, res) => {
+  try {
+    const rewards = [
+      {
+        id: 'daily',
+        title: 'Daily Check-in',
+        amount: 50,
+        icon: '📅',
+        claimed: req.user.lastDailyReward ? 
+          new Date().toDateString() === new Date(req.user.lastDailyReward).toDateString() : 
+          false
+      },
+      {
+        id: 'community',
+        title: 'Community Reward',
+        amount: 100,
+        icon: '🎁',
+        claimed: req.user.claimedCommunityReward || false
+      }
+    ];
+    res.json(rewards);
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch rewards' });
+  }
+});
+
+app.post('/api/rewards/daily/claim', verifyWallet, async (req, res) => {
+  try {
+    const today = new Date().toDateString();
+    const lastReward = req.user.lastDailyReward ? 
+      new Date(req.user.lastDailyReward).toDateString() : 
+      null;
+
+    if (today === lastReward) {
+      return res.status(400).json({ error: 'Daily reward already claimed' });
+    }
+
+    req.user.points += 50;
+    req.user.lastDailyReward = new Date();
+    await req.user.save();
+
+    res.json({ success: true, points: req.user.points });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to claim daily reward' });
   }
 });
 

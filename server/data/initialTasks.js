@@ -3,64 +3,80 @@ export const initialTasks = [
     title: 'Connect TON Wallet',
     reward: 100,
     icon: '💎',
-    type: 'limited',
-    requirements: ['Connect your TON wallet to start earning'],
-    active: true
-  },
-  {
-    title: 'Join Telegram Channel',
-    reward: 250,
-    icon: '📢',
-    type: 'limited',
-    requirements: ['Join our official Telegram channel'],
-    active: true
-  },
-  {
-    title: 'Follow on Twitter',
-    reward: 200,
-    icon: '🐦',
-    type: 'limited',
-    requirements: ['Follow @PAWS_Crypto on Twitter'],
-    active: true
-  },
-  {
-    title: 'Share Referral Code',
-    reward: 300,
-    icon: '🎯',
-    type: 'limited',
-    requirements: ['Share your referral code with friends'],
+    type: 'onboarding',
+    requirements: ['Connect your TON wallet'],
     active: true
   },
   {
     title: 'Complete Profile',
     reward: 150,
     icon: '👤',
-    type: 'limited',
-    requirements: ['Set up your username'],
+    type: 'onboarding',
+    requirements: ['Set username'],
+    active: true
+  },
+  {
+    title: 'Join Telegram Channel',
+    reward: 250,
+    icon: '📢',
+    type: 'social',
+    requirements: ['Join t.me/TonFunZone'],
+    active: true
+  },
+  {
+    title: 'Follow Twitter',
+    reward: 200,
+    icon: '🐦',
+    type: 'social',
+    requirements: ['Follow @TonFunZone'],
+    active: true
+  },
+  {
+    title: 'Subscribe to Updates',
+    reward: 150,
+    icon: '📫',
+    type: 'social',
+    requirements: ['Enable notifications'],
+    active: true
+  },
+  {
+    title: 'Share on Twitter',
+    reward: 300,
+    icon: '🔄',
+    type: 'social',
+    requirements: ['Share your referral link'],
+    active: true
+  },
+  {
+    title: 'Stake 100 PAWS',
+    reward: 500,
+    icon: '🏦',
+    type: 'defi',
+    requirements: ['Stake for 30 days minimum'],
+    active: true
+  },
+  {
+    title: 'Add Liquidity',
+    reward: 1000,
+    icon: '💧',
+    type: 'defi',
+    requirements: ['Add PAWS-TON LP'],
+    active: true
+  },
+  {
+    title: 'Trade on DEX',
+    reward: 400,
+    icon: '💱',
+    type: 'defi',
+    requirements: ['Min. 10 TON volume'],
     active: true
   },
   {
     title: 'Daily Check-in',
     reward: 50,
     icon: '📅',
-    type: 'in-game',
-    requirements: ['Check in daily to earn rewards'],
-    active: true
-  },
-  {
-    title: 'Stake PAWS',
-    reward: 500,
-    icon: '🏦',
-    type: 'in-game',
-    requirements: ['Stake PAWS tokens for 30 days'],
-    active: true
-  },
-  {
-    title: 'TON DEX Trading',
-    reward: 1000,
-    icon: '💱',
-    type: 'partners',
-    requirements: ['Trade on TON DEX with minimum 10 TON volume'],
+    type: 'daily',
+    requirements: ['Check in daily'],
     active: true
   }
 ];
