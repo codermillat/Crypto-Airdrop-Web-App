@@ -3,7 +3,7 @@ import User from '../models/User.js';
 
 // Add your wallet address here to get admin access
 const ADMIN_ADDRESSES = [
-  'UQAeOdsJ-FFdX9i3zDZXLZHxUPbpNF_Ib1k1X_2U9OiV8mgH',  // Primary admin
+  'UQAeOdsJ-UQAeOdsJ-FFdX9i3zDZXLZHxUPbpNF_Ib1k1X_2U9OiV8mgH',  // Primary admin
   'EQD_w8w6HHVnvqj5KhgQE7gFBUz94oZUZBpLhUFXh_7nj3rk',  // Secondary admin
 ];
 
