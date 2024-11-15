@@ -7,6 +7,7 @@ import adminRoutes from './routes/admin.js';
 import dataRoutes from './routes/data.js';
 import userRoutes from './routes/user.js';
 import { verifyWallet } from './middleware/auth.js';
+import { initializeDatabase } from './utils/db.js';
 
 dotenv.config();
 
@@ -15,7 +16,7 @@ const port = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
-// Database connection
+// Database connection with initialization
 async function connectDB() {
   try {
     await connect(MONGODB_URI, {
@@ -23,8 +24,12 @@ async function connectDB() {
       useUnifiedTopology: true
     });
     console.log('Connected to MongoDB');
+    
+    // Initialize database with sample data
+    await initializeDatabase();
+    console.log('Database initialized with sample data');
   } catch (err) {
-    console.error('MongoDB connection error:', err);
+    console.error('MongoDB connection/initialization error:', err);
     process.exit(1);
   }
 }
