@@ -5,46 +5,55 @@ const userSchema = new Schema({
     type: String,
     required: true,
     unique: true,
+    index: true
   },
   username: {
     type: String,
     unique: true,
-    sparse: true
+    sparse: true,
+    trim: true,
+    minlength: 3,
+    maxlength: 20
   },
   points: {
     type: Number,
     default: 0,
+    min: 0
+  },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user'
+  },
+  isActive: {
+    type: Boolean,
+    default: true
   },
   completedTasks: [{
     type: Schema.Types.ObjectId,
-    ref: 'Task',
+    ref: 'Task'
   }],
   referralCode: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    index: true
   },
   referredBy: {
     type: Schema.Types.ObjectId,
-    ref: 'User',
+    ref: 'User'
   },
   referralCount: {
     type: Number,
-    default: 0,
+    default: 0
   },
-  isRegistered: {
-    type: Boolean,
-    default: false
-  },
-  lastDailyReward: Date,
-  claimedCommunityReward: {
-    type: Boolean,
-    default: false
-  },
+  lastLogin: Date,
   createdAt: {
     type: Date,
-    default: Date.now,
-  },
+    default: Date.now
+  }
 });
+
+userSchema.index({ points: -1 });
 
 export default model('User', userSchema);

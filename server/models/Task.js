@@ -4,12 +4,17 @@ const taskSchema = new Schema({
   title: {
     type: String,
     required: true,
+    trim: true
+  },
+  description: {
+    type: String,
+    trim: true
   },
   reward: {
     type: Number,
     required: true,
+    min: 0
   },
-  icon: String,
   type: {
     type: String,
     enum: ['onboarding', 'social', 'defi', 'daily'],
@@ -17,15 +22,28 @@ const taskSchema = new Schema({
   },
   requirements: [{
     type: String,
+    trim: true
   }],
-  active: {
+  isActive: {
     type: Boolean,
-    default: true,
+    default: true
   },
+  completionCount: {
+    type: Number,
+    default: 0
+  },
+  startDate: {
+    type: Date,
+    default: Date.now
+  },
+  endDate: Date,
   createdAt: {
     type: Date,
-    default: Date.now,
-  },
+    default: Date.now
+  }
 });
+
+taskSchema.index({ type: 1, isActive: 1 });
+taskSchema.index({ completionCount: -1 });
 
 export default model('Task', taskSchema);

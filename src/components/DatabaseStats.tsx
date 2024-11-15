@@ -1,6 +1,5 @@
 import React from 'react';
 import { Users, Award, CheckSquare } from 'lucide-react';
-import { DatabaseStats } from '../hooks/useDatabase';
 
 interface StatCardProps {
   title: string;
@@ -18,11 +17,19 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon }) => (
   </div>
 );
 
-interface Props {
-  stats: DatabaseStats;
+interface AdminStats {
+  totalUsers: number;
+  activeUsers: number;
+  totalTasks: number;
+  activeTasks: number;
+  totalPoints: number;
 }
 
-const DatabaseStats: React.FC<Props> = ({ stats }) => {
+interface AdminStatsProps {
+  stats: AdminStats;
+}
+
+const AdminStatsDisplay: React.FC<AdminStatsProps> = ({ stats }) => {
   return (
     <div className="grid grid-cols-2 gap-4">
       <StatCard 
@@ -31,22 +38,32 @@ const DatabaseStats: React.FC<Props> = ({ stats }) => {
         icon={<Users className="w-5 h-5 text-blue-500" />}
       />
       <StatCard 
-        title="Total Points" 
-        value={stats.totalPoints.toLocaleString()} 
-        icon={<Award className="w-5 h-5 text-yellow-500" />}
+        title="Active Users" 
+        value={stats.activeUsers} 
+        icon={<Users className="w-5 h-5 text-green-500" />}
       />
       <StatCard 
-        title="Tasks Created" 
+        title="Total Tasks" 
         value={stats.totalTasks} 
+        icon={<CheckSquare className="w-5 h-5 text-yellow-500" />}
+      />
+      <StatCard 
+        title="Active Tasks" 
+        value={stats.activeTasks} 
         icon={<CheckSquare className="w-5 h-5 text-green-500" />}
       />
       <StatCard 
-        title="Avg Points/User" 
-        value={stats.averagePoints.toLocaleString()} 
+        title="Total Points" 
+        value={stats.totalPoints.toLocaleString()} 
         icon={<Award className="w-5 h-5 text-purple-500" />}
+      />
+      <StatCard 
+        title="Avg Points/User" 
+        value={Math.round(stats.totalPoints / stats.totalUsers).toLocaleString()} 
+        icon={<Award className="w-5 h-5 text-blue-500" />}
       />
     </div>
   );
 };
 
-export default DatabaseStats;
+export default AdminStatsDisplay;

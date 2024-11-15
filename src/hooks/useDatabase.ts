@@ -2,21 +2,25 @@ import { useState, useEffect } from 'react';
 import { fetchAllData } from '../utils/api';
 import { useWalletStore } from '../store/useWalletStore';
 
-export interface DatabaseStats {
+export interface AdminStats {
   totalUsers: number;
-  totalPoints: number;
+  activeUsers: number;
   totalTasks: number;
-  totalCompletedTasks: number;
-  averagePoints: number;
+  activeTasks: number;
+  totalPoints: number;
 }
 
 export interface DatabaseTask {
   _id: string;
   title: string;
+  description: string;
   reward: number;
   type: string;
   requirements: string[];
-  active: boolean;
+  isActive: boolean;
+  completionCount: number;
+  startDate: string;
+  endDate?: string;
   createdAt: string;
 }
 
@@ -24,15 +28,17 @@ export interface DatabaseUser {
   address: string;
   username: string | null;
   points: number;
+  role: 'user' | 'admin';
+  isActive: boolean;
   referralCode: string;
   referralCount: number;
   completedTasks: string[];
-  isRegistered: boolean;
+  lastLogin?: string;
   createdAt: string;
 }
 
 export interface DatabaseData {
-  stats: DatabaseStats;
+  stats: AdminStats;
   tasks: DatabaseTask[];
   users: DatabaseUser[];
 }

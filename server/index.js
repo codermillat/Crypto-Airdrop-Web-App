@@ -1,14 +1,14 @@
 import express from 'express';
 import { connect } from 'mongoose';
-import jwt from 'jsonwebtoken';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import adminRoutes from './routes/admin.js';
+import dataRoutes from './routes/data.js';
+import { verifyWallet, verifyAdmin } from './middleware/auth.js';
 import User from './models/User.js';
 import Task from './models/Task.js';
 import { initialTasks } from './data/initialTasks.js';
 import { initialUsers } from './data/initialUsers.js';
-import dataRoutes from './routes/data.js';
-import { verifyWallet } from './middleware/auth.js';
 
 dotenv.config();
 
@@ -16,20 +16,17 @@ const app = express();
 const port = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://cryptoDB:cryptoDB@cluster0.f86yd.mongodb.net/?retryWrites=true&w=majority';
 
-// Connect to MongoDB and initialize data
 async function connectDB() {
   try {
     await connect(MONGODB_URI);
     console.log('Connected to MongoDB');
     
-    // Create initial tasks if none exist
     const tasksCount = await Task.countDocuments();
     if (tasksCount === 0) {
       await Task.insertMany(initialTasks);
       console.log('Initial tasks created');
     }
 
-    // Create initial users if none exist
     const usersCount = await User.countDocuments();
     if (usersCount === 0) {
       await User.insertMany(initialUsers);
@@ -46,48 +43,20 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
+
 app.use(express.json());
 
-// Add data routes
+// Admin routes (protected)
+app.use('/api/admin', verifyAdmin, adminRoutes);
+
+// Data routes (protected)
 app.use('/api/data', verifyWallet, dataRoutes);
 
-// User routes
-app.get('/api/user', verifyWallet, async (req, res) => {
-  try {
-    res.json(req.user);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch user data' });
-  }
+// Public routes
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
 });
 
-// Tasks routes
-app.get('/api/tasks', verifyWallet, async (req, res) => {
-  try {
-    const tasks = await Task.find({ active: true });
-    const userTasks = tasks.map(task => ({
-      ...task.toObject(),
-      completed: req.user.completedTasks.includes(task._id)
-    }));
-    res.json(userTasks);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch tasks' });
-  }
-});
-
-// Leaderboard route
-app.get('/api/leaderboard', async (req, res) => {
-  try {
-    const users = await User.find()
-      .sort({ points: -1 })
-      .limit(100)
-      .select('address points username');
-    res.json(users);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch leaderboard' });
-  }
-});
-
-// Start server
 connectDB().then(() => {
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);

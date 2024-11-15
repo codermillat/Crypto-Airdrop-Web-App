@@ -22,21 +22,12 @@ const App: React.FC = () => {
       <TonConnectUIProvider 
         manifestUrl={manifestUrl}
         uiPreferences={{
-          theme: 'DARK',
-          colorsSet: {
-            connectButton: {
-              background: '#3B82F6',
-              foreground: '#FFFFFF',
-            },
-          },
+          theme: 'DARK'
         }}
         actionsConfiguration={{
           twaReturnUrl: import.meta.env.PROD 
             ? 'https://crypto-airdrop-paws.netlify.app/'
-            : 'http://localhost:5173',
-        }}
-        walletsListConfiguration={{
-          includeWallets: ['tonkeeper', 'tonhub', 'mytonwallet'],
+            : 'http://localhost:5173'
         }}
       >
         <WalletProvider>
