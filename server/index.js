@@ -6,12 +6,13 @@ import dotenv from 'dotenv';
 import User from './models/User.js';
 import Task from './models/Task.js';
 import { initialTasks } from './data/initialTasks.js';
+import { initialUsers } from './data/initialUsers.js';
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/paws-crypto';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://cryptoDB:cryptoDB@cluster0.f86yd.mongodb.net/?retryWrites=true&w=majority';
 
 // Connect to MongoDB and initialize data
 async function connectDB() {
@@ -26,18 +27,11 @@ async function connectDB() {
       console.log('Initial tasks created');
     }
 
-    // Create test user if none exist
+    // Create initial users if none exist
     const usersCount = await User.countDocuments();
     if (usersCount === 0) {
-      await User.create({
-        address: 'EQAAFhjXzKuQ5N0c96nsdZQWATcJm909LYSaCAvWFxVJP80D',
-        username: 'test_user',
-        points: 1000,
-        referralCode: 'TEST123',
-        referralCount: 5,
-        completedTasks: []
-      });
-      console.log('Test user created');
+      await User.insertMany(initialUsers);
+      console.log('Initial users created');
     }
   } catch (err) {
     console.error('MongoDB connection error:', err);
@@ -46,7 +40,7 @@ async function connectDB() {
 }
 
 app.use(cors({
-  origin: ['https://crypto-airdrop-paws.netlify.app', 'http://localhost:5173'],
+  origin: ['https://crypto-airdrop-paws.netlify.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));

@@ -1,25 +1,26 @@
 import axios from 'axios';
 import { handleApiError } from './error';
 
+const BASE_URL = 'https://crypto-airdrop-web-app.onrender.com/api';
+
 const api = axios.create({
-  baseURL: import.meta.env.PROD 
-    ? 'https://paws-crypto-api.onrender.com/api'
-    : 'http://localhost:3000/api',
+  baseURL: BASE_URL,
   headers: {
     'Content-Type': 'application/json'
   },
   withCredentials: true,
-  timeout: 10000 // 10 second timeout
+  timeout: 15000
 });
 
 // Add wallet address and telegram info to requests
 api.interceptors.request.use((config) => {
   const address = localStorage.getItem('wallet_address');
-  const telegramId = localStorage.getItem('telegram_id');
-  
-  if (address) {
-    config.headers.address = address;
+  if (!address) {
+    return Promise.reject(new Error('Wallet not connected'));
   }
+  
+  config.headers.address = address;
+  const telegramId = localStorage.getItem('telegram_id');
   if (telegramId) {
     config.headers['x-telegram-id'] = telegramId;
   }
@@ -40,47 +41,125 @@ api.interceptors.response.use(
   }
 );
 
-// Retry failed requests
-const withRetry = async (fn: () => Promise<any>, retries = 2) => {
-  try {
-    return await fn();
-  } catch (error) {
-    if (retries > 0 && axios.isAxiosError(error) && error.response?.status >= 500) {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return withRetry(fn, retries - 1);
+// Enhanced retry logic with exponential backoff
+const withRetry = async (fn: () => Promise<any>, maxRetries = 3) => {
+  let retries = 0;
+  
+  while (retries < maxRetries) {
+    try {
+      return await fn();
+    } catch (error) {
+      retries++;
+      if (retries === maxRetries) {
+        throw error;
+      }
+      
+      // Exponential backoff with jitter
+      const delay = Math.min(1000 * Math.pow(2, retries) + Math.random() * 1000, 10000);
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
+  }
+};
+
+// API endpoints with proper error handling
+export const fetchUser = async () => {
+  try {
+    const response = await withRetry(() => api.get('/user'));
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch user data:', error);
     throw error;
   }
 };
 
-export const fetchUser = () => 
-  withRetry(() => api.get('/user')).then(res => res.data);
+export const fetchTasks = async () => {
+  try {
+    const response = await withRetry(() => api.get('/tasks'));
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch tasks:', error);
+    throw error;
+  }
+};
 
-export const fetchTasks = () => 
-  withRetry(() => api.get('/tasks')).then(res => res.data);
+export const claimReward = async (taskId: string) => {
+  try {
+    const response = await withRetry(() => api.post('/claim-reward', { taskId }));
+    return response.data;
+  } catch (error) {
+    console.error('Failed to claim reward:', error);
+    throw error;
+  }
+};
 
-export const claimReward = (taskId: string) => 
-  withRetry(() => api.post('/claim-reward', { taskId })).then(res => res.data);
+export const fetchLeaderboard = async () => {
+  try {
+    const response = await withRetry(() => api.get('/leaderboard'));
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch leaderboard:', error);
+    throw error;
+  }
+};
 
-export const fetchLeaderboard = () => 
-  withRetry(() => api.get('/leaderboard')).then(res => res.data);
+export const submitReferral = async (referralCode: string) => {
+  try {
+    const response = await withRetry(() => api.post('/referral', { referralCode }));
+    return response.data;
+  } catch (error) {
+    console.error('Failed to submit referral:', error);
+    throw error;
+  }
+};
 
-export const submitReferral = (referralCode: string) => 
-  withRetry(() => api.post('/referral', { referralCode })).then(res => res.data);
+export const fetchReferrals = async () => {
+  try {
+    const response = await withRetry(() => api.get('/referrals'));
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch referrals:', error);
+    throw error;
+  }
+};
 
-export const fetchReferrals = () => 
-  withRetry(() => api.get('/referrals')).then(res => res.data);
+export const fetchRewards = async () => {
+  try {
+    const response = await withRetry(() => api.get('/rewards'));
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch rewards:', error);
+    throw error;
+  }
+};
 
-export const fetchRewards = () => 
-  withRetry(() => api.get('/rewards')).then(res => res.data);
+export const claimDailyReward = async () => {
+  try {
+    const response = await withRetry(() => api.post('/rewards/daily/claim'));
+    return response.data;
+  } catch (error) {
+    console.error('Failed to claim daily reward:', error);
+    throw error;
+  }
+};
 
-export const claimDailyReward = () => 
-  withRetry(() => api.post('/rewards/daily/claim')).then(res => res.data);
+export const registerUser = async (username: string) => {
+  try {
+    const response = await withRetry(() => api.post('/register', { username }));
+    return response.data;
+  } catch (error) {
+    console.error('Failed to register user:', error);
+    throw error;
+  }
+};
 
-export const registerUser = (username: string) => 
-  withRetry(() => api.post('/register', { username })).then(res => res.data);
-
-export const getReferralCode = () => 
-  withRetry(() => api.get('/referral-code')).then(res => res.data);
+export const getReferralCode = async () => {
+  try {
+    const response = await withRetry(() => api.get('/referral-code'));
+    return response.data;
+  } catch (error) {
+    console.error('Failed to get referral code:', error);
+    throw error;
+  }
+};
 
 export default api;
