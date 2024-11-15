@@ -32,16 +32,28 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
   const [error, setError] = useState<Error | null>(null);
   const [tonConnectUI] = useTonConnectUI();
   const userAddress = useTonAddress();
-  const { setAddress, setPoints, setUsername, setIsRegistered, setReferralCode, resetWalletState } = useWalletStore();
+  const { 
+    setAddress, 
+    setPoints, 
+    setUsername, 
+    setIsRegistered, 
+    setReferralCode, 
+    resetWalletState 
+  } = useWalletStore();
 
   // Register or fetch wallet data
   const registerOrFetchWallet = async (address: string) => {
     try {
+      console.log('Registering/fetching wallet:', address);
       const userData = await registerWallet(address);
+      console.log('User data received:', userData);
+      
       setPoints(userData.points);
       setUsername(userData.username);
       setIsRegistered(!!userData.username);
       setReferralCode(userData.referralCode);
+      
+      return userData;
     } catch (err) {
       console.error('Failed to register/fetch wallet:', err);
       throw err;
@@ -110,16 +122,26 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
 
   // Handle address changes
   useEffect(() => {
-    if (isInitialized && tonConnectUI?.connector) {
-      if (userAddress) {
-        setAddress(userAddress);
-        localStorage.setItem('wallet_address', userAddress);
-        registerOrFetchWallet(userAddress).catch(console.error);
-      } else {
-        resetWalletState();
-        localStorage.removeItem('wallet_address');
+    const handleAddressChange = async () => {
+      if (isInitialized && tonConnectUI?.connector) {
+        if (userAddress) {
+          console.log('Address changed:', userAddress);
+          setAddress(userAddress);
+          localStorage.setItem('wallet_address', userAddress);
+          try {
+            await registerOrFetchWallet(userAddress);
+          } catch (error) {
+            console.error('Failed to handle address change:', error);
+          }
+        } else {
+          console.log('Address cleared');
+          resetWalletState();
+          localStorage.removeItem('wallet_address');
+        }
       }
-    }
+    };
+
+    handleAddressChange();
   }, [isInitialized, userAddress, setAddress, resetWalletState, tonConnectUI]);
 
   const connect = useCallback(async () => {

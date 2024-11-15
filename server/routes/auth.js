@@ -5,6 +5,16 @@ import User from '../models/User.js';
 
 const router = Router();
 
+// Debug endpoint
+router.get('/debug', async (req, res) => {
+  try {
+    const users = await User.find().lean();
+    res.json({ users });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Register new user
 router.post('/register', verifyWallet, registerUser);
 
@@ -17,16 +27,22 @@ router.post('/wallet', async (req, res) => {
       return res.status(400).json({ error: 'Wallet address required' });
     }
 
+    console.log('Wallet registration request:', { address });
+
     let user = await User.findOne({ address });
+    console.log('Existing user:', user);
     
     if (!user) {
+      console.log('Creating new user...');
       user = await User.create({
         address,
         referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
         points: 0,
         isActive: true,
-        completedTasks: []
+        completedTasks: [],
+        role: 'user'
       });
+      console.log('New user created:', user);
     }
 
     if (!user.isActive) {

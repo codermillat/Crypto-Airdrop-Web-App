@@ -14,14 +14,17 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+const FRONTEND_URL = process.env.URL || 'http://localhost:5173';
 
 // Database connection with initialization
 async function connectDB() {
   try {
+    console.log('Connecting to MongoDB...');
     await connect(MONGODB_URI, {
       useNewUrlParser: true,
-      useUnifiedTopology: true
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      socketTimeoutMS: 45000, // Close sockets after 45s
     });
     console.log('Connected to MongoDB');
     
@@ -36,13 +39,23 @@ async function connectDB() {
 
 // CORS configuration
 app.use(cors({
-  origin: [FRONTEND_URL],
+  origin: [FRONTEND_URL, 'https://crypto-airdrop-paws.netlify.app'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'address']
 }));
 
 app.use(express.json());
+
+// Debug middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`, {
+    headers: req.headers,
+    body: req.body,
+    query: req.query
+  });
+  next();
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
