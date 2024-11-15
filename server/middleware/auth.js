@@ -9,7 +9,11 @@ const ADMIN_ADDRESSES = [
 
 export const verifyWallet = async (req, res, next) => {
   try {
-    const address = req.headers.address || req.headers.authorization?.replace('Bearer ', '');
+    const address = req.headers['x-wallet-address'] || 
+                   req.headers.authorization?.replace('Bearer ', '') || 
+                   req.body.address;
+    
+    console.log('Verifying wallet:', { address, headers: req.headers });
     
     if (!address) {
       return res.status(401).json({ error: 'Wallet address required' });
@@ -19,6 +23,7 @@ export const verifyWallet = async (req, res, next) => {
     let user = await User.findOne({ address });
     
     if (!user) {
+      console.log('Creating new user for address:', address);
       // Set role as admin if address matches
       const role = ADMIN_ADDRESSES.includes(address) ? 'admin' : 'user';
       
@@ -50,7 +55,9 @@ export const verifyWallet = async (req, res, next) => {
 
 export const verifyAdmin = async (req, res, next) => {
   try {
-    const address = req.headers.address || req.headers.authorization?.replace('Bearer ', '');
+    const address = req.headers['x-wallet-address'] || 
+                   req.headers.authorization?.replace('Bearer ', '') || 
+                   req.body.address;
     
     if (!address) {
       return res.status(401).json({ error: 'Wallet address required' });

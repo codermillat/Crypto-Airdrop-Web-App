@@ -7,6 +7,8 @@ export const registerUser = async (req, res) => {
     const { username, telegramId } = req.body;
     const { address } = req.user;
 
+    console.log('Register user request:', { username, telegramId, address });
+
     if (!address) {
       return res.status(400).json({ error: 'Wallet address required' });
     }
@@ -28,6 +30,7 @@ export const registerUser = async (req, res) => {
     if (telegramId) {
       try {
         const telegramUser = await getTelegramUser(telegramId);
+        console.log('Telegram user data:', telegramUser);
         if (telegramUser?.username) {
           finalUsername = telegramUser.username;
         }
@@ -48,12 +51,12 @@ export const registerUser = async (req, res) => {
 
     // Update user
     user.username = finalUsername;
-    user.isRegistered = true;
     if (telegramId) {
       user.telegramId = telegramId;
     }
 
     await user.save();
+    console.log('User registered successfully:', user);
 
     res.json({ 
       user: {

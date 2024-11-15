@@ -16,7 +16,7 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const address = localStorage.getItem('wallet_address');
   if (address) {
-    config.headers.address = address;
+    config.headers['x-wallet-address'] = address;
     config.headers.Authorization = `Bearer ${address}`;
   }
   return config;
@@ -28,6 +28,8 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   response => response.data,
   error => {
+    console.error('API Error:', error.response?.data || error.message);
+    
     if (!error.response) {
       return Promise.reject(handleApiError(new Error('Network error. Please check your connection.')));
     }
@@ -48,7 +50,9 @@ api.interceptors.response.use(
 );
 
 // Auth endpoints
-export const registerWallet = (address: string) => api.post('/auth/wallet', { address });
+export const registerWallet = (address: string) => 
+  api.post('/auth/wallet', { address });
+
 export const registerUser = (username: string, telegramId?: string) => 
   api.post('/auth/register', { username, telegramId });
 
