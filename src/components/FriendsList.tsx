@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Users } from 'lucide-react';
 import api from '../utils/api';
 import { useWalletStore } from '../store/useWalletStore';
+import ErrorState from './ErrorState';
 
 interface Friend {
   username: string;
@@ -12,6 +13,7 @@ interface Friend {
 const FriendsList = () => {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { address } = useWalletStore();
 
   useEffect(() => {
@@ -21,8 +23,9 @@ const FriendsList = () => {
       try {
         const response = await api.get('/referrals');
         setFriends(response.data);
+        setError(null);
       } catch (error) {
-        console.error('Failed to fetch friends:', error);
+        setError('Unable to load referrals. Please try again later.');
       } finally {
         setLoading(false);
       }
@@ -41,10 +44,17 @@ const FriendsList = () => {
     );
   }
 
+  if (error) {
+    return <ErrorState message={error} />;
+  }
+
   if (friends.length === 0) {
     return (
-      <div className="text-center text-gray-400 py-8">
-        No referrals yet. Share your code to invite friends!
+      <div className="text-center py-8">
+        <Users className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+        <p className="text-gray-400">
+          No referrals yet. Share your code to invite friends!
+        </p>
       </div>
     );
   }

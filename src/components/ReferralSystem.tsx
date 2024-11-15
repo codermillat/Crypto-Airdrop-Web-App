@@ -1,30 +1,35 @@
 import React, { useState, useEffect } from 'react';
-import { Share2, Loader2, Copy } from 'lucide-react';
-import { submitReferral } from '../utils/api';
+import { Share2, Loader2, Copy, Users } from 'lucide-react';
+import { submitReferral, getReferralCode } from '../utils/api';
 import { useWalletStore } from '../store/useWalletStore';
-import api from '../utils/api';
+import ErrorState from './ErrorState';
 
 const ReferralSystem = () => {
   const [referralCode, setReferralCode] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
-  const { address, username, referralCode: myReferralCode, setReferralCode: setMyReferralCode } = useWalletStore();
+  const { address, referralCode: myReferralCode, setReferralCode: setMyReferralCode } = useWalletStore();
 
   useEffect(() => {
     const fetchReferralCode = async () => {
       if (address && !myReferralCode) {
+        setLoading(true);
         try {
-          const response = await api.get('/referral-code');
-          setMyReferralCode(response.data.code);
+          const { code } = await getReferralCode();
+          setMyReferralCode(code);
+          setError('');
         } catch (err) {
-          console.error('Failed to fetch referral code:', err);
+          setError('Failed to load referral code. Please try again later.');
+        } finally {
+          setLoading(false);
         }
       }
     };
 
     fetchReferralCode();
-  }, [address]);
+  }, [address, myReferralCode, setMyReferralCode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +42,7 @@ const ReferralSystem = () => {
       await submitReferral(referralCode);
       setReferralCode('');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to submit referral code');
+      setError(err.message || 'Failed to submit referral code');
     } finally {
       setSubmitting(false);
     }
@@ -47,15 +52,36 @@ const ReferralSystem = () => {
     if (!myReferralCode) return;
     
     const link = `https://t.me/TonFunZoneBot?start=${myReferralCode}`;
-    await navigator.clipboard.writeText(link);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      setError('Failed to copy link to clipboard');
+    }
   };
 
   if (!address) {
     return (
       <div className="bg-gray-900 rounded-lg p-6 mb-6 text-center">
+        <Users className="w-12 h-12 mx-auto mb-4 text-gray-400" />
         <p className="text-gray-400">Connect wallet to view your referral stats</p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="bg-gray-900 rounded-lg p-6 mb-6 flex justify-center">
+        <Loader2 className="animate-spin text-blue-500" />
+      </div>
+    );
+  }
+
+  if (error && !submitting) {
+    return (
+      <div className="bg-gray-900 rounded-lg p-6 mb-6">
+        <ErrorState message={error} onRetry={() => window.location.reload()} />
       </div>
     );
   }
@@ -96,7 +122,7 @@ const ReferralSystem = () => {
           disabled={submitting}
         />
         
-        {error && (
+        {error && submitting && (
           <p className="text-red-500 text-sm">{error}</p>
         )}
 

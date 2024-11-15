@@ -8,7 +8,7 @@ const MOCK_DATA = {
     address: null,
     username: null,
     points: 0,
-    referralCode: null,
+    referralCode: 'DEMO123',
     isRegistered: false,
     completedTasks: []
   },
@@ -67,7 +67,9 @@ const MOCK_DATA = {
       icon: '🎁',
       claimed: false
     }
-  ]
+  ],
+  referrals: [],
+  referralCode: 'DEMO123'
 };
 
 const api = axios.create({
@@ -87,21 +89,68 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-const useMockData = (path: string) => {
+const useMockData = (path: string, config?: any) => {
   if (path.includes('/user')) return MOCK_DATA.user;
   if (path.includes('/tasks')) return MOCK_DATA.tasks;
   if (path.includes('/leaderboard')) return MOCK_DATA.leaderboard;
   if (path.includes('/rewards')) return MOCK_DATA.rewards;
+  if (path.includes('/referrals')) return MOCK_DATA.referrals;
+  if (path.includes('/referral-code')) return { code: MOCK_DATA.referralCode };
+  if (path.includes('/register')) {
+    return {
+      user: {
+        ...MOCK_DATA.user,
+        username: config?.data?.username,
+        isRegistered: true
+      }
+    };
+  }
+  if (path.includes('/claim-reward')) {
+    const taskId = config?.data?.taskId;
+    const task = MOCK_DATA.tasks.find(t => t._id === taskId);
+    if (!task) {
+      throw new Error('Task not found');
+    }
+    return {
+      points: MOCK_DATA.user.points + task.reward
+    };
+  }
   return null;
 };
 
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const mockData = useMockData(error.config.url);
-    if (mockData) {
-      return { data: mockData };
+    // Check if it's a network error
+    if (!error.response) {
+      const mockData = useMockData(error.config.url, error.config);
+      if (mockData) {
+        return Promise.resolve({ data: mockData });
+      }
     }
+    
+    // Handle specific API errors
+    if (error.response?.status === 400) {
+      const message = error.response.data?.error || 'Invalid request';
+      return Promise.reject(new Error(message));
+    }
+
+    if (error.response?.status === 401) {
+      return Promise.reject(new Error('Please connect your wallet first'));
+    }
+
+    if (error.response?.status === 403) {
+      return Promise.reject(new Error('You are not authorized to perform this action'));
+    }
+
+    if (error.response?.status === 404) {
+      return Promise.reject(new Error('Resource not found'));
+    }
+
+    if (error.response?.status === 429) {
+      return Promise.reject(new Error('Too many requests. Please try again later'));
+    }
+    
     return Promise.reject(handleApiError(error));
   }
 );
@@ -118,98 +167,48 @@ const withRetry = async (fn: () => Promise<any>, maxRetries = 3) => {
 };
 
 export const fetchUser = async () => {
-  try {
-    const response = await withRetry(() => api.get('/user'));
-    return response.data;
-  } catch (error) {
-    return MOCK_DATA.user;
-  }
+  const response = await withRetry(() => api.get('/user'));
+  return response.data;
 };
 
 export const fetchTasks = async () => {
-  try {
-    const response = await withRetry(() => api.get('/tasks'));
-    return response.data;
-  } catch (error) {
-    return MOCK_DATA.tasks;
-  }
+  const response = await withRetry(() => api.get('/tasks'));
+  return response.data;
 };
 
 export const claimReward = async (taskId: string) => {
-  try {
-    const response = await withRetry(() => api.post('/claim-reward', { taskId }));
-    return response.data;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new ApiError(error.message);
-    }
-    throw error;
-  }
+  const response = await withRetry(() => api.post('/claim-reward', { taskId }));
+  return response.data;
 };
 
 export const fetchLeaderboard = async () => {
-  try {
-    const response = await withRetry(() => api.get('/leaderboard'));
-    return response.data;
-  } catch (error) {
-    return MOCK_DATA.leaderboard;
-  }
+  const response = await withRetry(() => api.get('/leaderboard'));
+  return response.data;
 };
 
 export const submitReferral = async (referralCode: string) => {
-  try {
-    const response = await withRetry(() => api.post('/referral', { referralCode }));
-    return response.data;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new ApiError(error.message);
-    }
-    throw error;
-  }
+  const response = await withRetry(() => api.post('/referral', { referralCode }));
+  return response.data;
 };
 
 export const fetchRewards = async () => {
-  try {
-    const response = await withRetry(() => api.get('/rewards'));
-    return response.data;
-  } catch (error) {
-    return MOCK_DATA.rewards;
-  }
+  const response = await withRetry(() => api.get('/rewards'));
+  return response.data;
 };
 
 export const claimDailyReward = async () => {
-  try {
-    const response = await withRetry(() => api.post('/rewards/daily/claim'));
-    return response.data;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new ApiError(error.message);
-    }
-    throw error;
-  }
+  const response = await withRetry(() => api.post('/rewards/daily/claim'));
+  return response.data;
 };
 
 export const registerUser = async (username: string) => {
-  try {
-    const response = await withRetry(() => api.post('/register', { username }));
-    return response.data;
-  } catch (error) {
-    if (error instanceof Error) {
-      throw new ApiError(error.message);
-    }
-    throw error;
-  }
+  const response = await withRetry(() => api.post('/register', { username }));
+  return response.data;
 };
 
 export const getReferralCode = async () => {
-  try {
-    const response = await withRetry(() => api.get('/referral-code'));
-    return response.data;
-  } catch (error) {
-    return { 
-      code: 'MOCK' + Math.random().toString(36).substring(2, 6).toUpperCase() 
-    };
-  }
+  const response = await withRetry(() => api.get('/referral-code'));
+  return response.data;
 };
 
 export default api;
