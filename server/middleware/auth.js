@@ -1,9 +1,10 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
+// Add your wallet address here to get admin access
 const ADMIN_ADDRESSES = [
-  'UQAeOdsJ-FFdX9i3zDZXLZHxUPbpNF_Ib1k1X_2U9OiV8mgH',
-  // Add more admin addresses as needed
+  'UQAeOdsJ-FFdX9i3zDZXLZHxUPbpNF_Ib1k1X_2U9OiV8mgH',  // Primary admin
+  'EQD_w8w6HHVnvqj5KhgQE7gFBUz94oZUZBpLhUFXh_7nj3rk',  // Secondary admin
 ];
 
 export const verifyWallet = async (req, res, next) => {
@@ -17,10 +18,16 @@ export const verifyWallet = async (req, res, next) => {
     let user = await User.findOne({ address });
     
     if (!user) {
+      // Set role as admin if address matches
+      const role = ADMIN_ADDRESSES.includes(address) ? 'admin' : 'user';
+      
       user = await User.create({ 
         address,
         referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
-        role: ADMIN_ADDRESSES.includes(address) ? 'admin' : 'user'
+        role,
+        isActive: true,
+        points: 0,
+        completedTasks: []
       });
     }
 

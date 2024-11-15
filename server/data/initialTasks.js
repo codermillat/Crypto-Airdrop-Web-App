@@ -1,82 +1,52 @@
 export const initialTasks = [
   {
-    title: 'Connect TON Wallet',
+    title: 'Connect Wallet',
+    description: 'Connect your TON wallet to start earning rewards',
     reward: 100,
-    icon: '💎',
     type: 'onboarding',
-    requirements: ['Connect your TON wallet'],
-    active: true
+    requirements: ['Install TON wallet', 'Connect to platform'],
+    isActive: true,
+    completionCount: 0,
+    startDate: new Date('2024-01-01')
   },
   {
     title: 'Complete Profile',
-    reward: 150,
-    icon: '👤',
+    description: 'Set up your profile to unlock all features',
+    reward: 200,
     type: 'onboarding',
-    requirements: ['Set username'],
-    active: true
+    requirements: ['Set username', 'Add profile picture'],
+    isActive: true,
+    completionCount: 0,
+    startDate: new Date('2024-01-01')
   },
   {
-    title: 'Join Telegram Channel',
-    reward: 250,
-    icon: '📢',
+    title: 'Join Telegram',
+    description: 'Join our official Telegram community',
+    reward: 300,
     type: 'social',
-    requirements: ['Join t.me/TonFunZone'],
-    active: true
+    requirements: ['Join t.me/PAWS_Official', 'Send verification message'],
+    isActive: true,
+    completionCount: 0,
+    startDate: new Date('2024-01-01')
   },
   {
     title: 'Follow Twitter',
-    reward: 200,
-    icon: '🐦',
+    description: 'Follow and engage with PAWS on Twitter',
+    reward: 250,
     type: 'social',
-    requirements: ['Follow @TonFunZone'],
-    active: true
+    requirements: ['Follow @PAWS_Official', 'Like & Retweet pinned post'],
+    isActive: true,
+    completionCount: 0,
+    startDate: new Date('2024-01-01')
   },
   {
-    title: 'Subscribe to Updates',
-    reward: 150,
-    icon: '📫',
-    type: 'social',
-    requirements: ['Enable notifications'],
-    active: true
-  },
-  {
-    title: 'Share on Twitter',
-    reward: 300,
-    icon: '🔄',
-    type: 'social',
-    requirements: ['Share your referral link'],
-    active: true
-  },
-  {
-    title: 'Stake 100 PAWS',
-    reward: 500,
-    icon: '🏦',
-    type: 'defi',
-    requirements: ['Stake for 30 days minimum'],
-    active: true
-  },
-  {
-    title: 'Add Liquidity',
+    title: 'First Stake',
+    description: 'Stake your first PAWS tokens',
     reward: 1000,
-    icon: '💧',
     type: 'defi',
-    requirements: ['Add PAWS-TON LP'],
-    active: true
-  },
-  {
-    title: 'Trade on DEX',
-    reward: 400,
-    icon: '💱',
-    type: 'defi',
-    requirements: ['Min. 10 TON volume'],
-    active: true
-  },
-  {
-    title: 'Daily Check-in',
-    reward: 50,
-    icon: '📅',
-    type: 'daily',
-    requirements: ['Check in daily'],
-    active: true
+    requirements: ['Stake minimum 100 PAWS', 'Lock for 7 days'],
+    isActive: true,
+    completionCount: 0,
+    startDate: new Date('2024-01-01')
   }
 ];
