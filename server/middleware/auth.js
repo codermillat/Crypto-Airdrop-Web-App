@@ -15,6 +15,7 @@ export const verifyWallet = async (req, res, next) => {
       return res.status(401).json({ error: 'Wallet address required' });
     }
 
+    // Always create a new user if one doesn't exist
     let user = await User.findOne({ address });
     
     if (!user) {
@@ -35,6 +36,7 @@ export const verifyWallet = async (req, res, next) => {
       return res.status(403).json({ error: 'Account is banned' });
     }
 
+    // Update last login
     user.lastLogin = new Date();
     await user.save();
     
@@ -56,7 +58,11 @@ export const verifyAdmin = async (req, res, next) => {
 
     const user = await User.findOne({ address });
     
-    if (!user || user.role !== 'admin') {
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (user.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });
     }
     

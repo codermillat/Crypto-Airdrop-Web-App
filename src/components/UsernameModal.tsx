@@ -36,10 +36,14 @@ const UsernameModal: React.FC<Props> = ({ isOpen, onClose }) => {
     setError('');
 
     try {
-      const { user } = await registerUser(username.trim().toLowerCase());
-      setStoreUsername(user.username);
-      setIsRegistered(true);
-      onClose();
+      const response = await registerUser(username.trim().toLowerCase(), telegramId);
+      if (response?.user) {
+        setStoreUsername(response.user.username);
+        setIsRegistered(true);
+        onClose();
+      } else {
+        throw new Error('Invalid response from server');
+      }
     } catch (err: any) {
       console.error('Registration error:', err);
       setError(err?.message || 'Failed to register username. Please try again.');

@@ -42,7 +42,8 @@ api.interceptors.response.use(
       return Promise.reject(handleApiError(new Error('Please connect your wallet')));
     }
 
-    return Promise.reject(handleApiError(error));
+    const errorMessage = error.response.data?.error || error.message;
+    return Promise.reject(handleApiError(new Error(errorMessage)));
   }
 );
 

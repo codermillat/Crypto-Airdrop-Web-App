@@ -7,10 +7,20 @@ export const registerUser = async (req, res) => {
     const { username, telegramId } = req.body;
     const { address } = req.user;
 
-    // Verify if user exists
+    if (!address) {
+      return res.status(400).json({ error: 'Wallet address required' });
+    }
+
+    // Create user if doesn't exist
     let user = await User.findOne({ address });
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      user = new User({
+        address,
+        referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+        points: 0,
+        isActive: true,
+        completedTasks: []
+      });
     }
 
     // Get Telegram username if available
@@ -26,9 +36,13 @@ export const registerUser = async (req, res) => {
       }
     }
 
-    // Check if username is already taken
-    const existingUser = await User.findOne({ username: finalUsername });
-    if (existingUser && existingUser.address !== address) {
+    // Check if username is already taken by another user
+    const existingUser = await User.findOne({ 
+      username: finalUsername,
+      address: { $ne: address } // Exclude current user
+    });
+    
+    if (existingUser) {
       return res.status(400).json({ error: 'Username already taken' });
     }
 
@@ -47,7 +61,7 @@ export const registerUser = async (req, res) => {
         username: user.username,
         points: user.points,
         referralCode: user.referralCode,
-        isRegistered: user.isRegistered
+        isRegistered: true
       }
     });
   } catch (err) {
