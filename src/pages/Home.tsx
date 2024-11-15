@@ -1,47 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { TonConnectButton, useTonAddress } from '@tonconnect/ui-react';
 import { PawPrint } from 'lucide-react';
-import { useWalletStore } from '../store/useWalletStore';
 import { useNavigate } from 'react-router-dom';
+import WalletConnect from '../components/WalletConnect';
 import UsernameModal from '../components/UsernameModal';
-import api from '../utils/api';
+import { useWalletStore } from '../store/useWalletStore';
+import { useTonConnect } from '../hooks/useTonConnect';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 const Home = () => {
-  const userAddress = useTonAddress();
   const { 
-    setAddress, 
     points, 
     username,
-    isRegistered,
-    setUsername,
-    setPoints,
-    setIsRegistered 
+    isRegistered
   } = useWalletStore();
+  const { connected, address } = useTonConnect();
   const [showUsernameModal, setShowUsernameModal] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const initUser = async () => {
-      if (userAddress) {
-        setAddress(userAddress);
-        try {
-          const response = await api.get('/user');
-          const { username, points, isRegistered } = response.data;
-          setUsername(username);
-          setPoints(points || 0);
-          setIsRegistered(isRegistered);
-          
-          if (!isRegistered) {
-            setShowUsernameModal(true);
-          }
-        } catch (error) {
-          console.error('Failed to fetch user data:', error);
-        }
-      }
-    };
-
-    initUser();
-  }, [userAddress]);
+    if (connected && address && !isRegistered) {
+      setShowUsernameModal(true);
+    }
+  }, [connected, address, isRegistered]);
 
   return (
     <div className="p-4">
@@ -54,10 +34,12 @@ const Home = () => {
 
       <div className="bg-gray-900 rounded-lg p-8 text-center mb-6">
         <PawPrint className="w-16 h-16 mx-auto mb-4 text-white" />
-        <div className="mb-4 flex justify-center">
-          <TonConnectButton />
+        <div className="mb-4">
+          <ErrorBoundary>
+            <WalletConnect />
+          </ErrorBoundary>
         </div>
-        {userAddress && (
+        {connected && address && (
           <div className="mt-4">
             <div className="text-xl font-bold text-blue-500">{points} PAWS</div>
             <div className="text-gray-400">Current Balance</div>

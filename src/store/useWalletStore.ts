@@ -14,17 +14,22 @@ interface WalletState {
   setPoints: (points: number) => void;
   setReferralCode: (code: string | null) => void;
   setIsRegistered: (status: boolean) => void;
+  resetWalletState: () => void;
 }
+
+const initialState = {
+  address: null,
+  username: null,
+  balance: 0,
+  points: 0,
+  referralCode: null,
+  isRegistered: false,
+};
 
 export const useWalletStore = create<WalletState>()(
   persist(
     (set) => ({
-      address: null,
-      username: null,
-      balance: 0,
-      points: 0,
-      referralCode: null,
-      isRegistered: false,
+      ...initialState,
       setAddress: (address) => {
         set({ address });
         if (address) {
@@ -38,9 +43,17 @@ export const useWalletStore = create<WalletState>()(
       setPoints: (points) => set({ points }),
       setReferralCode: (code) => set({ referralCode: code }),
       setIsRegistered: (status) => set({ isRegistered: status }),
+      resetWalletState: () => set(initialState),
     }),
     {
       name: 'wallet-storage',
+      partialize: (state) => ({
+        address: state.address,
+        username: state.username,
+        points: state.points,
+        referralCode: state.referralCode,
+        isRegistered: state.isRegistered,
+      }),
     }
   )
 );

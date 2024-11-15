@@ -1,8 +1,8 @@
 {
-  "url": "https://crypto-airdrop-paws.netlify.app",
+  "url": "http://localhost:5173",
   "name": "PAWS Crypto",
   "iconUrl": "https://cdn-icons-png.flaticon.com/512/1138/1138485.png",
-  "termsOfUseUrl": "https://crypto-airdrop-paws.netlify.app/terms",
-  "privacyPolicyUrl": "https://crypto-airdrop-paws.netlify.app/privacy",
+  "termsOfUseUrl": "http://localhost:5173/terms",
+  "privacyPolicyUrl": "http://localhost:5173/privacy",
   "manifestVersion": "0.4"
 }

@@ -7,30 +7,38 @@ import Tasks from './pages/Tasks';
 import Leaderboard from './pages/Leaderboard';
 import Friends from './pages/Friends';
 import Earn from './pages/Earn';
+import Admin from './pages/Admin';
 import ErrorBoundary from './components/ErrorBoundary';
 import WalletProvider from './providers/WalletProvider';
 
 const App: React.FC = () => {
-  // Configure TON Connect options
-  const manifestUrl = 'https://crypto-airdrop-paws.netlify.app/tonconnect-manifest.json';
-  const uiPreferences = {
-    uiPreferences: {
-      theme: 'DARK',
-      colorsSet: {
-        connectButton: {
-          background: '#3B82F6',
-          foreground: '#FFFFFF',
-        },
-      },
-    },
-    actionsConfiguration: {
-      twaReturnUrl: 'https://crypto-airdrop-paws.netlify.app/',
-    },
-  };
+  // Use environment-specific manifest URL
+  const manifestUrl = import.meta.env.PROD
+    ? 'https://crypto-airdrop-paws.netlify.app/tonconnect-manifest.json'
+    : '/tonconnect-manifest.json';
 
   return (
     <ErrorBoundary>
-      <TonConnectUIProvider manifestUrl={manifestUrl} {...uiPreferences}>
+      <TonConnectUIProvider 
+        manifestUrl={manifestUrl}
+        uiPreferences={{
+          theme: 'DARK',
+          colorsSet: {
+            connectButton: {
+              background: '#3B82F6',
+              foreground: '#FFFFFF',
+            },
+          },
+        }}
+        actionsConfiguration={{
+          twaReturnUrl: import.meta.env.PROD 
+            ? 'https://crypto-airdrop-paws.netlify.app/'
+            : 'http://localhost:5173',
+        }}
+        walletsListConfiguration={{
+          includeWallets: ['tonkeeper', 'tonhub', 'mytonwallet'],
+        }}
+      >
         <WalletProvider>
           <BrowserRouter>
             <div className="min-h-screen bg-black text-white">
@@ -41,6 +49,7 @@ const App: React.FC = () => {
                   <Route path="/leaderboard" element={<Leaderboard />} />
                   <Route path="/friends" element={<Friends />} />
                   <Route path="/earn" element={<Earn />} />
+                  <Route path="/admin" element={<Admin />} />
                 </Routes>
                 <Navigation />
               </div>

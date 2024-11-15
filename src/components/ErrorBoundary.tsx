@@ -1,7 +1,9 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { AlertCircle } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
+  fallback?: ReactNode;
 }
 
 interface State {
@@ -25,20 +27,23 @@ class ErrorBoundary extends Component<Props, State> {
 
   public render() {
     if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
       return (
-        <div className="min-h-screen bg-black text-white flex items-center justify-center p-4">
-          <div className="bg-gray-900 rounded-lg p-6 max-w-md w-full text-center">
-            <h2 className="text-xl font-bold mb-4">Something went wrong</h2>
-            <p className="text-gray-400 mb-4">
-              Please try refreshing the page or connecting your wallet again.
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
-            >
-              Refresh Page
-            </button>
-          </div>
+        <div className="flex flex-col items-center justify-center p-4 text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+          <h2 className="text-xl font-bold mb-2">Something went wrong</h2>
+          <p className="text-gray-400 mb-4">
+            Please try refreshing the page
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
+          >
+            Refresh Page
+          </button>
         </div>
       );
     }
