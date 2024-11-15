@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWalletStore } from '../store/useWalletStore';
 import { Loader2, X } from 'lucide-react';
 import { registerUser } from '../utils/api';
@@ -10,9 +10,23 @@ interface Props {
 
 const UsernameModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const [username, setUsername] = useState('');
+  const [telegramId, setTelegramId] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { setUsername: setStoreUsername, setIsRegistered } = useWalletStore();
+
+  useEffect(() => {
+    // Check for Telegram WebApp data
+    if (window.Telegram?.WebApp) {
+      const tgUser = window.Telegram.WebApp.initDataUnsafe?.user;
+      if (tgUser?.id) {
+        setTelegramId(tgUser.id.toString());
+        if (tgUser.username) {
+          setUsername(tgUser.username);
+        }
+      }
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,14 +80,14 @@ const UsernameModal: React.FC<Props> = ({ isOpen, onClose }) => {
               placeholder="Enter username (letters, numbers, underscore)"
               minLength={3}
               maxLength={20}
-              disabled={loading}
+              disabled={loading || !!telegramId}
               autoFocus
             />
             {error && (
               <p className="text-red-500 text-sm mt-2">{error}</p>
             )}
             <p className="text-gray-400 text-sm mt-2">
-              Username must be 3-20 characters long and can only contain letters, numbers, and underscores.
+              {telegramId ? 'Using Telegram username' : 'Username must be 3-20 characters long and can only contain letters, numbers, and underscores.'}
             </p>
           </div>
 

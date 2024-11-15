@@ -15,6 +15,11 @@ const userSchema = new Schema({
     minlength: 3,
     maxlength: 20
   },
+  telegramId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
   points: {
     type: Number,
     default: 0,
