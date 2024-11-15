@@ -2,17 +2,18 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
 const ADMIN_ADDRESSES = [
-  'UQAeOdsJ-FFdX9i3zDZXLZHxUPbpNF_Ib1k1X_2U9OiV8mgH'
+  'UQAeOdsJ-FFdX9i3zDZXLZHxUPbpNF_Ib1k1X_2U9OiV8mgH',
+  // Add more admin addresses as needed
 ];
 
 export const verifyWallet = async (req, res, next) => {
-  const { address } = req.headers;
-  
-  if (!address) {
-    return res.status(401).json({ error: 'Wallet address required' });
-  }
-
   try {
+    const address = req.headers.address || req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!address) {
+      return res.status(401).json({ error: 'Wallet address required' });
+    }
+
     let user = await User.findOne({ address });
     
     if (!user) {
@@ -40,12 +41,19 @@ export const verifyWallet = async (req, res, next) => {
 
 export const verifyAdmin = async (req, res, next) => {
   try {
-    const user = await User.findOne({ address: req.headers.address });
+    const address = req.headers.address || req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!address) {
+      return res.status(401).json({ error: 'Wallet address required' });
+    }
+
+    const user = await User.findOne({ address });
     
     if (!user || user.role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' });
     }
     
+    req.user = user;
     next();
   } catch (err) {
     console.error('Admin verification error:', err);
