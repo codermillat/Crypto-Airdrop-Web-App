@@ -1,210 +1,240 @@
-# PAWS Crypto Airdrop Platform
+# PAWS Crypto Airdrop Platform - Deployment Guide
 
-A decentralized web application for managing crypto airdrops and rewards using the TON blockchain. Users can complete tasks, earn PAWS tokens, and participate in a referral program.
+This guide explains how to deploy the PAWS Crypto Airdrop platform using Netlify (frontend), Render (backend), and MongoDB Atlas (database).
 
-![PAWS Platform](https://cdn-icons-png.flaticon.com/512/1138/1138485.png)
+## Architecture Overview
 
-## Features
-
-- 🔐 **TON Wallet Integration**
-  - Secure wallet connection using TonConnect
-  - Automatic user registration
-  - Real-time balance updates
-
-- 🎯 **Task-based Reward System**
-  - Multiple task categories (Onboarding, Social, DeFi, Daily)
-  - Automated reward distribution
-  - Task completion tracking
-
-- 👥 **Referral Program**
-  - Unique referral codes for each user
-  - Multi-level rewards system
-  - Real-time referral tracking
-
-- 🏆 **Leaderboard**
-  - Global ranking system
-  - Points-based competition
-  - Real-time updates
-
-- 💰 **Daily Rewards**
-  - Daily login bonuses
-  - Streak rewards
-  - Special event rewards
-
-- 👤 **User Profile Management**
-  - Username customization
-  - Telegram integration
-  - Activity tracking
-
-## Tech Stack
-
-- **Frontend**
-  - React 18
-  - TypeScript
-  - Tailwind CSS
-  - TonConnect UI
-  - Zustand (State Management)
-  - Lucide Icons
-
-- **Backend**
-  - Node.js
-  - Express
-  - MongoDB
-  - JWT Authentication
-
-- **Blockchain**
-  - TON Blockchain
-  - TonConnect
+The application is split into:
+- Frontend: React + Vite application
+- Backend: Node.js + Express API server
+- Database: MongoDB Atlas
 
 ## Prerequisites
 
-- Node.js 16+
-- MongoDB Database
-- TON Wallet (TonKeeper recommended)
+1. Accounts needed:
+   - [Netlify Account](https://app.netlify.com/signup)
+   - [Render Account](https://render.com)
+   - [MongoDB Atlas Account](https://www.mongodb.com/cloud/atlas/register)
 
-## Environment Variables
+2. Required tools:
+   - Node.js 16+
+   - Git
 
-Create a `.env` file in the root directory:
+## Step 1: MongoDB Atlas Setup
 
-```env
-MONGODB_URI=mongodb://localhost:27017/paws_crypto
-JWT_SECRET=your_jwt_secret_key
-VITE_API_URL=http://localhost:3000/api
-URL=http://localhost:5173
+1. Create a new project in MongoDB Atlas:
+   ```
+   a. Log in to MongoDB Atlas
+   b. Create New Project → Name it "paws-crypto"
+   c. Build a Database → Choose FREE tier
+   d. Select region closest to your users
+   e. Create Cluster
+   ```
+
+2. Set up database access:
+   ```
+   a. Go to Database Access → Add New Database User
+   b. Choose Password Authentication
+   c. Create a username and secure password
+   d. Set privileges to "Read and write to any database"
+   e. Add User
+   ```
+
+3. Configure network access:
+   ```
+   a. Go to Network Access → Add IP Address
+   b. Choose "Allow Access from Anywhere" (0.0.0.0/0)
+   c. Confirm
+   ```
+
+4. Get connection string:
+   ```
+   a. Go to Database → Connect → Connect your application
+   b. Copy the connection string
+   c. Replace <password> with your database user's password
+   ```
+
+## Step 2: Render Backend Deployment
+
+1. Create new Web Service:
+   ```
+   a. Go to Render Dashboard
+   b. Click "New +" → Web Service
+   c. Connect your GitHub repository
+   ```
+
+2. Configure the service:
+   ```
+   Name: paws-crypto-api
+   Region: Choose closest to your users
+   Branch: main
+   Root Directory: ./
+   Runtime: Node
+   Build Command: npm install
+   Start Command: node server/index.js
+   ```
+
+3. Add environment variables:
+   ```
+   MONGODB_URI=your_mongodb_atlas_connection_string
+   JWT_SECRET=your_secure_jwt_secret
+   URL=https://your-netlify-app-name.netlify.app
+   PORT=10000
+   NODE_ENV=production
+   ```
+
+4. Deploy the service and note the URL (e.g., https://paws-crypto-api.onrender.com)
+
+## Step 3: Netlify Frontend Deployment
+
+1. Update frontend configuration:
+   ```
+   a. Create .env.production in project root:
+   VITE_API_URL=https://your-render-api-url/api
+   ```
+
+2. Configure Netlify deployment:
+   ```
+   a. Go to Netlify Dashboard
+   b. Add new site → Import from Git
+   c. Connect to your repository
+   ```
+
+3. Configure build settings:
+   ```
+   Base directory: ./
+   Build command: npm run build
+   Publish directory: dist
+   ```
+
+4. Add environment variables:
+   ```
+   VITE_API_URL=https://your-render-api-url/api
+   ```
+
+5. Deploy site and note the URL (e.g., https://paws-crypto.netlify.app)
+
+## Step 4: CORS Configuration
+
+Update server/index.js to allow your Netlify domain:
+
+```javascript
+const FRONTEND_URL = process.env.URL || 'http://localhost:5173';
+
+app.use(cors({
+  origin: [
+    FRONTEND_URL,
+    'http://localhost:5173',
+    'http://localhost:4173',
+    'https://your-netlify-app-name.netlify.app'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-wallet-address']
+}));
 ```
 
-## Installation
+## Step 5: Update TON Connect Configuration
 
-1. Clone the repository:
-```bash
-git clone https://github.com/codermillat/Crypto-Airdrop-Web-App.git
-cd Crypto-Airdrop-Web-App
+1. Update public/tonconnect-manifest.json:
+```json
+{
+  "url": "https://your-netlify-app-name.netlify.app",
+  "name": "PAWS Crypto",
+  "iconUrl": "https://cdn-icons-png.flaticon.com/512/1138/1138485.png",
+  "termsOfUseUrl": "https://your-netlify-app-name.netlify.app/terms",
+  "privacyPolicyUrl": "https://your-netlify-app-name.netlify.app/privacy"
+}
 ```
 
-2. Install dependencies:
-```bash
-npm install
-```
+## Troubleshooting
 
-3. Start the development server:
-```bash
-npm run dev
-```
+### Common Issues
 
-The application will be available at `http://localhost:5173`
+1. CORS Errors:
+   ```
+   - Verify CORS configuration in server/index.js
+   - Check if frontend URL matches CORS allowed origins
+   - Ensure all request headers are properly allowed
+   ```
 
-## Testing Production Build Locally
+2. MongoDB Connection Issues:
+   ```
+   - Verify MongoDB Atlas connection string
+   - Check if IP whitelist includes Render's IPs
+   - Ensure database user credentials are correct
+   ```
 
-To test the production build on your local machine:
+3. API Connection Issues:
+   ```
+   - Verify VITE_API_URL in frontend environment
+   - Check if Render service is running
+   - Ensure API endpoints are properly formatted
+   ```
 
-1. Build the application:
-```bash
-npm run build
-```
+### Deployment Checklist
 
-2. Preview the production build:
-```bash
-npm run preview
-```
+- [ ] MongoDB Atlas cluster is created and configured
+- [ ] Database user is created with proper permissions
+- [ ] Network access is configured in MongoDB Atlas
+- [ ] Backend is deployed to Render with correct environment variables
+- [ ] Frontend is deployed to Netlify with correct environment variables
+- [ ] CORS is configured to allow Netlify domain
+- [ ] TON Connect manifest is updated with production URLs
+- [ ] All API endpoints are working in production
+- [ ] Wallet connection works in production
+- [ ] Database operations are successful
 
-The production version will be available at `http://localhost:4173`. This allows you to:
-- Test the optimized production build
-- Verify that all features work as expected
-- Check performance optimizations
-- Ensure proper environment variable handling
+## Monitoring and Maintenance
 
-Key differences in production mode:
-- Minified and optimized assets
-- Disabled development tools and warnings
-- Production-specific environment variables
-- Improved performance
-- Code splitting for better load times
-- Optimized chunk sizes for faster initial load
+1. Monitor application:
+   ```
+   - Use Render dashboard for backend logs
+   - Check Netlify deploy logs for frontend issues
+   - Monitor MongoDB Atlas metrics
+   ```
 
-Note: The preview server is for testing purposes only and should not be used for actual production deployment.
+2. Regular maintenance:
+   ```
+   - Keep dependencies updated
+   - Monitor database performance
+   - Check error logs regularly
+   - Backup database periodically
+   ```
 
-## Project Structure
+## Security Considerations
 
-```
-├── public/
-│   └── tonconnect-manifest.json
-├── server/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   └── utils/
-├── src/
-│   ├── components/
-│   ├── hooks/
-│   ├── pages/
-│   ├── providers/
-│   ├── store/
-│   └── utils/
-└── package.json
-```
+1. Environment Variables:
+   ```
+   - Use strong JWT secret
+   - Rotate database credentials periodically
+   - Keep environment variables secure
+   ```
 
-## API Routes
+2. Database Security:
+   ```
+   - Regular security patches
+   - Monitor database access
+   - Implement proper authentication
+   ```
 
-### Authentication
-- `POST /api/auth/wallet` - Register/authenticate wallet
-- `POST /api/auth/register` - Complete user registration
+3. API Security:
+   ```
+   - Rate limiting
+   - Input validation
+   - Secure headers
+   ```
 
-### User
-- `GET /api/user` - Get user profile
-- `GET /api/user/tasks` - Get available tasks
-- `POST /api/user/claim-reward` - Claim task reward
+## Support
 
-### Data
-- `GET /api/data/leaderboard` - Get global leaderboard
-- `GET /api/data/referral-code` - Get user's referral code
-- `POST /api/data/referral` - Submit referral code
-
-### Admin
-- `GET /api/admin/stats` - Get platform statistics
-- `POST /api/admin/users/:userId/:action` - Manage users
-- `PUT /api/admin/tasks/:taskId` - Manage tasks
-
-## Development
-
-### Running Tests
-```bash
-npm run test
-```
-
-### Building for Production
-```bash
-npm run build
-```
-
-### Deployment
-The application can be deployed to Netlify:
-
-1. Connect your repository to Netlify
-2. Set environment variables in Netlify dashboard
-3. Deploy using the following settings:
-   - Build command: `npm run build`
-   - Publish directory: `dist`
-
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## Security
-
-- All API routes are protected with wallet-based authentication
-- Admin routes require special wallet addresses
-- Rate limiting is implemented on sensitive endpoints
-- CORS is configured for production security
+For deployment issues:
+1. Check the troubleshooting guide above
+2. Review service-specific logs
+3. Contact support:
+   - Netlify: support@netlify.com
+   - Render: support@render.com
+   - MongoDB Atlas: https://support.mongodb.com
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Support
-
-For support, email support@pawscrypto.com or join our [Telegram community](https://t.me/PAWS_Official).
