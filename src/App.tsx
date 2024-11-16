@@ -11,12 +11,9 @@ import Admin from './pages/Admin';
 import ErrorBoundary from './components/ErrorBoundary';
 import WalletProvider from './providers/WalletProvider';
 
-
 const App: React.FC = () => {
-  // Use environment-specific manifest URL
-  const manifestUrl = import.meta.env.PROD
-    ? 'https://crypto-airdrop-paws.netlify.app/tonconnect-manifest.json'
-    : '/tonconnect-manifest.json';
+  const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+  const manifestUrl = `${appUrl}/tonconnect-manifest.json`;
 
   return (
     <ErrorBoundary>
@@ -26,9 +23,7 @@ const App: React.FC = () => {
           theme: 'SYSTEM'
         }}
         actionsConfiguration={{
-          twaReturnUrl: import.meta.env.PROD 
-            ? 'https://crypto-airdrop-paws.netlify.app/'
-            : 'http://localhost:5173'
+          twaReturnUrl: appUrl
         }}
       >
         <WalletProvider>

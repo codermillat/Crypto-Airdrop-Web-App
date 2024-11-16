@@ -13,10 +13,15 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/paws_crypto';
+const FRONTEND_URL = process.env.VITE_APP_URL || 'http://localhost:5173';
 
 // CORS configuration
 app.use(cors({
-  origin: true, // Allow all origins in development
+  origin: [
+    FRONTEND_URL,
+    'http://localhost:5173',
+    'http://localhost:4173'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-wallet-address'],
@@ -57,30 +62,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Connect to MongoDB with retry mechanism
-const connectWithRetry = async (retries = 5, interval = 5000) => {
-  for (let i = 0; i < retries; i++) {
-    try {
-      console.log(`MongoDB connection attempt ${i + 1}/${retries}`);
-      await connect(MONGODB_URI, {
-        serverSelectionTimeoutMS: 5000,
-        socketTimeoutMS: 45000,
-        retryWrites: true,
-        w: 'majority'
-      });
-      console.log('Connected to MongoDB successfully');
-      return true;
-    } catch (err) {
-      console.error(`MongoDB connection attempt ${i + 1} failed:`, err);
-      if (i < retries - 1) {
-        console.log(`Retrying in ${interval/1000} seconds...`);
-        await new Promise(resolve => setTimeout(resolve, interval));
-      }
-    }
-  }
-  throw new Error('Failed to connect to MongoDB after multiple attempts');
-};
-
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', verifyWallet, adminRoutes);
@@ -108,7 +89,14 @@ app.use((req, res) => {
 // Start server and connect to database
 const startServer = async () => {
   try {
-    await connectWithRetry();
+    await connect(MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      retryWrites: true,
+      w: 'majority'
+    });
+    console.log('Connected to MongoDB successfully');
+    
     app.listen(port, () => {
       console.log(`Server running on port ${port}`);
     });
