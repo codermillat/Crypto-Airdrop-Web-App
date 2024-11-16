@@ -3,12 +3,15 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "concurrently \"vite\" \"node server/index.js\"",
     "build": "tsc && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "server": "node server/index.js"
+    "start": "node server/index.js"
   },
   "dependencies": {
     "@tonconnect/ui-react": "^2.0.0",

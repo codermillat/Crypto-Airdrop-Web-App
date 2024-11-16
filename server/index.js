@@ -26,6 +26,8 @@ async function connectDB() {
     await connect(MONGODB_URI, {
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
+      retryWrites: true,
+      w: 'majority'
     });
     console.log('Connected to MongoDB');
     
@@ -38,28 +40,49 @@ async function connectDB() {
   }
 }
 
+// Enhanced CORS configuration
 app.use(cors({
-  origin: [FRONTEND_URL, 'http://localhost:5173', 'http://localhost:4173'],
+  origin: [
+    FRONTEND_URL,
+    'http://localhost:5173',
+    'http://localhost:4173',
+    'https://paws-crypto.netlify.app'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-wallet-address']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-wallet-address'],
+  maxAge: 86400 // CORS preflight cache for 24 hours
 }));
 
-app.use(express.json());
-
+// Security headers
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path}`, {
-    headers: req.headers,
-    body: req.body,
-    query: req.query
-  });
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   next();
 });
 
+app.use(express.json());
+
+// Request logging in development
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`, {
+      headers: req.headers,
+      body: req.body,
+      query: req.query
+    });
+    next();
+  });
+}
+
+// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
     timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
     database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
@@ -69,6 +92,7 @@ app.use('/api/admin', verifyWallet, adminRoutes);
 app.use('/api/data', verifyWallet, dataRoutes);
 app.use('/api/user', verifyWallet, userRoutes);
 
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   res.status(err.status || 500).json({ 
@@ -77,6 +101,7 @@ app.use((err, req, res, next) => {
   });
 });
 
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({ 
     error: 'Resource not found',
