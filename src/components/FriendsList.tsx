@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Loader2, Users } from 'lucide-react';
-import api from '../utils/api';
+import { fetchReferrals } from '../utils/api';
 import { useWalletStore } from '../store/useWalletStore';
 import ErrorState from './ErrorState';
 
@@ -17,21 +17,21 @@ const FriendsList = () => {
   const { address } = useWalletStore();
 
   useEffect(() => {
-    const fetchFriends = async () => {
+    const loadReferrals = async () => {
       if (!address) return;
       
       try {
-        const response = await api.get('/referrals');
-        setFriends(response.data);
         setError(null);
-      } catch (error) {
-        setError('Unable to load referrals. Please try again later.');
+        const data = await fetchReferrals();
+        setFriends(data);
+      } catch (err: any) {
+        setError(err?.message || 'Unable to load referrals. Please try again later.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFriends();
+    loadReferrals();
   }, [address]);
 
   if (!address) return null;
@@ -39,13 +39,13 @@ const FriendsList = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
-        <Loader2 className="animate-spin" />
+        <Loader2 className="animate-spin text-blue-500" />
       </div>
     );
   }
 
   if (error) {
-    return <ErrorState message={error} />;
+    return <ErrorState message={error} onRetry={() => window.location.reload()} />;
   }
 
   if (friends.length === 0) {
