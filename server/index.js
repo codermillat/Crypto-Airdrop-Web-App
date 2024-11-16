@@ -13,15 +13,17 @@ dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/paws_crypto';
 const FRONTEND_URL = process.env.URL || 'http://localhost:5173';
 
 async function connectDB() {
   try {
     console.log('Connecting to MongoDB...');
+    if (!MONGODB_URI) {
+      throw new Error('MongoDB URI is not defined. Please check your environment variables.');
+    }
+
     await connect(MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
     });
@@ -31,12 +33,13 @@ async function connectDB() {
     console.log('Database initialized with sample data');
   } catch (err) {
     console.error('MongoDB connection/initialization error:', err);
-    process.exit(1);
+    // Don't exit the process, let the application continue without DB
+    console.log('Starting server without database connection...');
   }
 }
 
 app.use(cors({
-  origin: [FRONTEND_URL, 'http://localhost:5173'],
+  origin: [FRONTEND_URL, 'http://localhost:5173', 'http://localhost:4173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-wallet-address']
@@ -54,7 +57,11 @@ app.use((req, res, next) => {
 });
 
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  });
 });
 
 app.use('/api/auth', authRoutes);
@@ -78,8 +85,9 @@ app.use((req, res) => {
   });
 });
 
-connectDB().then(() => {
-  app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-  });
+// Start server first, then try to connect to database
+const server = app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+  // Try to connect to database after server is running
+  connectDB().catch(console.error);
 });

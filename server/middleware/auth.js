@@ -3,7 +3,7 @@ import User from '../models/User.js';
 
 const ADMIN_ADDRESSES = [
   'UQAeOdsJ-UQAeOdsJ-FFdX9i3zDZXLZHxUPbpNF_Ib1k1X_2U9OiV8mgH',
-  'EQD_w8w6HHVnvqj5KhgQE7gFBUz94oZUZBpLhUFXh_7nj3rk',
+  'UQAnlr2RPgdNbmC3SKrT6Dbf9YEowgNb44FMOXPBffb4v30c',
 ];
 
 export const verifyWallet = async (req, res, next) => {

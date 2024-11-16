@@ -41,26 +41,36 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
     resetWalletState 
   } = useWalletStore();
 
-  // Register or fetch wallet data
-  const registerOrFetchWallet = async (address: string) => {
+  // Register or fetch wallet data with retry mechanism
+  const registerOrFetchWallet = async (address: string, retryCount = 3) => {
     try {
-      console.log('Registering/fetching wallet:', address);
-      const userData = await registerWallet(address);
-      console.log('User data received:', userData);
+      if (import.meta.env.DEV) {
+        console.log('Registering/fetching wallet:', address);
+      }
       
-      setPoints(userData.points);
-      setUsername(userData.username);
-      setIsRegistered(!!userData.username);
-      setReferralCode(userData.referralCode);
+      const userData = await registerWallet(address);
+      
+      if (import.meta.env.DEV) {
+        console.log('User data received:', userData);
+      }
+      
+      setPoints(userData.data.points);
+      setUsername(userData.data.username);
+      setIsRegistered(!!userData.data.username);
+      setReferralCode(userData.data.referralCode);
       
       return userData;
     } catch (err) {
-      console.error('Failed to register/fetch wallet:', err);
+      if (retryCount > 0 && (err instanceof Error && err.message.includes('Network error'))) {
+        // Wait for 1 second before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return registerOrFetchWallet(address, retryCount - 1);
+      }
       throw err;
     }
   };
 
-  // Initialize TonConnect
+  // Initialize TonConnect with timeout and retry
   useEffect(() => {
     let mounted = true;
     let initTimeout: NodeJS.Timeout;
@@ -120,21 +130,27 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
     };
   }, [tonConnectUI]);
 
-  // Handle address changes
+  // Handle address changes with retry mechanism
   useEffect(() => {
     const handleAddressChange = async () => {
       if (isInitialized && tonConnectUI?.connector) {
         if (userAddress) {
-          console.log('Address changed:', userAddress);
+          if (import.meta.env.DEV) {
+            console.log('Address changed:', userAddress);
+          }
           setAddress(userAddress);
           localStorage.setItem('wallet_address', userAddress);
           try {
             await registerOrFetchWallet(userAddress);
           } catch (error) {
             console.error('Failed to handle address change:', error);
+            // Show user-friendly error message
+            setError(new Error('Failed to connect wallet. Please try again.'));
           }
         } else {
-          console.log('Address cleared');
+          if (import.meta.env.DEV) {
+            console.log('Address cleared');
+          }
           resetWalletState();
           localStorage.removeItem('wallet_address');
         }

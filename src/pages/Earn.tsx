@@ -1,4 +1,3 @@
-import React from 'react';
 import { Wallet } from 'lucide-react';
 import RewardsList from '../components/RewardsList';
 import { useWalletStore } from '../store/useWalletStore';

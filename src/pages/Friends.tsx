@@ -1,4 +1,3 @@
-import React from 'react';
 import ReferralSystem from '../components/ReferralSystem';
 import FriendsList from '../components/FriendsList';
 

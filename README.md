@@ -67,7 +67,7 @@ A decentralized web application for managing crypto airdrops and rewards using t
 Create a `.env` file in the root directory:
 
 ```env
-MONGODB_URI=your_mongodb_connection_string
+MONGODB_URI=mongodb://localhost:27017/paws_crypto
 JWT_SECRET=your_jwt_secret_key
 VITE_API_URL=http://localhost:3000/api
 URL=http://localhost:5173
@@ -92,6 +92,36 @@ npm run dev
 ```
 
 The application will be available at `http://localhost:5173`
+
+## Testing Production Build Locally
+
+To test the production build on your local machine:
+
+1. Build the application:
+```bash
+npm run build
+```
+
+2. Preview the production build:
+```bash
+npm run preview
+```
+
+The production version will be available at `http://localhost:4173`. This allows you to:
+- Test the optimized production build
+- Verify that all features work as expected
+- Check performance optimizations
+- Ensure proper environment variable handling
+
+Key differences in production mode:
+- Minified and optimized assets
+- Disabled development tools and warnings
+- Production-specific environment variables
+- Improved performance
+- Code splitting for better load times
+- Optimized chunk sizes for faster initial load
+
+Note: The preview server is for testing purposes only and should not be used for actual production deployment.
 
 ## Project Structure
 
@@ -174,12 +204,6 @@ The application can be deployed to Netlify:
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Acknowledgments
-
-- TON Blockchain team for TonConnect
-- MongoDB Atlas for database hosting
-- Netlify for frontend hosting
 
 ## Support
 

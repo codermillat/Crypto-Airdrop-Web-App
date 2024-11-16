@@ -1,7 +1,12 @@
 import axios from 'axios';
 import { handleApiError } from './error';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+// In production, default to the current origin if VITE_API_URL is not set
+const BASE_URL = import.meta.env.VITE_API_URL || (
+  import.meta.env.PROD 
+    ? `${window.location.origin}/api`
+    : 'http://localhost:3000/api'
+);
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -17,6 +22,17 @@ api.interceptors.request.use((config) => {
   if (address) {
     config.headers['x-wallet-address'] = address;
   }
+  
+  // Log request in development
+  if (import.meta.env.DEV) {
+    console.log('API Request:', {
+      url: config.url,
+      method: config.method,
+      data: config.data,
+      headers: config.headers
+    });
+  }
+  
   return config;
 }, (error) => {
   return Promise.reject(handleApiError(error));
@@ -26,15 +42,21 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   response => response.data,
   error => {
-    console.error('API Error:', error.response?.data || error.message);
+    // Log error in development
+    if (import.meta.env.DEV) {
+      console.error('API Error:', error.response?.data || error.message);
+    }
     
     if (!error.response) {
-      return Promise.reject(handleApiError(new Error('Network error. Please check your connection.')));
+      return Promise.reject(handleApiError(new Error('Network error. Please check your connection and try again.')));
     }
 
     if (error.response.status === 401) {
       localStorage.removeItem('wallet_address');
-      window.location.href = '/';
+      // Only redirect if we're not already on the home page
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
       return Promise.reject(handleApiError(new Error('Please connect your wallet')));
     }
 

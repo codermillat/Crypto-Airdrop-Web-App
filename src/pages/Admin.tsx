@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Database, AlertCircle } from 'lucide-react';
 import { useDatabase } from '../hooks/useDatabase';
 import { useWalletStore } from '../store/useWalletStore';

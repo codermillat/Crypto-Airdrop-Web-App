@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useWalletStore } from '../store/useWalletStore';
-import { Loader2, X } from 'lucide-react';
+import { Loader2, X, AlertCircle } from 'lucide-react';
 import { registerUser } from '../utils/api';
 
 interface Props {
@@ -56,12 +56,12 @@ const UsernameModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-gray-900 rounded-lg p-6 w-full max-w-md">
+      <div className="bg-gray-900 rounded-lg p-6 w-full max-w-md relative">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold">Set Username</h2>
           <button 
             onClick={onClose} 
-            className="text-gray-400 hover:text-white"
+            className="text-gray-400 hover:text-white absolute top-4 right-4"
             disabled={loading}
           >
             <X size={24} />
@@ -77,7 +77,8 @@ const UsernameModal: React.FC<Props> = ({ isOpen, onClose }) => {
               type="text"
               value={username}
               onChange={(e) => {
-                setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''));
+                const value = e.target.value.replace(/[^a-zA-Z0-9_]/g, '');
+                setUsername(value);
                 setError('');
               }}
               className="w-full bg-gray-800 text-white px-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -88,7 +89,10 @@ const UsernameModal: React.FC<Props> = ({ isOpen, onClose }) => {
               autoFocus
             />
             {error && (
-              <p className="text-red-500 text-sm mt-2">{error}</p>
+              <div className="mt-2 flex items-center text-red-500 text-sm">
+                <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0" />
+                <span>{error}</span>
+              </div>
             )}
             <p className="text-gray-400 text-sm mt-2">
               {telegramId ? 'Using Telegram username' : 'Username must be 3-20 characters long and can only contain letters, numbers, and underscores.'}
@@ -98,10 +102,13 @@ const UsernameModal: React.FC<Props> = ({ isOpen, onClose }) => {
           <button
             type="submit"
             disabled={loading || username.length < 3}
-            className="w-full bg-blue-500 text-white py-3 rounded-lg flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-blue-500 text-white py-3 rounded-lg flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
           >
             {loading ? (
-              <Loader2 className="animate-spin" />
+              <>
+                <Loader2 className="animate-spin w-5 h-5" />
+                <span>Setting Username...</span>
+              </>
             ) : (
               'Set Username'
             )}

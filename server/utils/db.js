@@ -19,7 +19,7 @@ export const initializeDatabase = async () => {
     }
 
     // Create admin user if doesn't exist
-    const adminAddress = process.env.ADMIN_WALLET_ADDRESS || 'EQD_w8w6HHVnvqj5KhgQE7gFBUz94oZUZBpLhUFXh_7nj3rk';
+    const adminAddress = process.env.ADMIN_WALLET_ADDRESS || 'UQAnlr2RPgdNbmC3SKrT6Dbf9YEowgNb44FMOXPBffb4v30c';
     const adminExists = await User.findOne({ address: adminAddress });
 
     if (!adminExists) {

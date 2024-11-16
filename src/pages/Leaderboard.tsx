@@ -1,4 +1,3 @@
-import React from 'react';
 import LeaderboardList from '../components/LeaderboardList';
 import { Trophy } from 'lucide-react';
 

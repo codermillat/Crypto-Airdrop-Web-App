@@ -19,30 +19,20 @@ export function useAsync<T>(
   });
 
   const execute = useCallback(async () => {
-    setState(prev => ({ ...prev, loading: true, error: null }));
-    
+    setState({ data: null, loading: true, error: null });
     try {
       const data = await asyncFn();
       setState({ data, loading: false, error: null });
-      return data;
     } catch (error) {
-      const apiError = error instanceof ApiError ? error : new ApiError('An unexpected error occurred');
-      setState({ data: null, loading: false, error: apiError });
-      throw apiError;
+      setState({ data: null, loading: false, error: error as ApiError });
     }
-  }, [asyncFn, ...deps]);
+  }, deps);
 
   useEffect(() => {
     if (immediate) {
       execute();
     }
-  }, [execute, immediate]);
+  }, [execute]);
 
-  return {
-    ...state,
-    execute,
-    reset: () => setState({ data: null, loading: false, error: null }),
-  };
+  return state;
 }
-
-export default useAsync;

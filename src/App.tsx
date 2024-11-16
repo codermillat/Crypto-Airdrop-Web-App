@@ -22,7 +22,7 @@ const App: React.FC = () => {
       <TonConnectUIProvider 
         manifestUrl={manifestUrl}
         uiPreferences={{
-          theme: 'DARK'
+          theme: 'SYSTEM'
         }}
         actionsConfiguration={{
           twaReturnUrl: import.meta.env.PROD 

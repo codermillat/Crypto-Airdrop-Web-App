@@ -1,6 +1,6 @@
 export const initialUsers = [
   {
-    address: 'UQAeOdsJ-FFdX9i3zDZXLZHxUPbpNF_Ib1k1X_2U9OiV8mgH',
+    address: 'UQAnlr2RPgdNbmC3SKrT6Dbf9YEowgNb44FMOXPBffb4v30c',
     username: 'admin',
     points: 10000,
     role: 'admin',
