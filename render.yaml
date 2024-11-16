@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: paws-crypto-api
+    env: node
+    buildCommand: npm install
+    startCommand: node server/index.js
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: URL
+        value: https://paws-crypto.netlify.app
+      - key: PORT
+        value: 10000
+      - key: NODE_ENV
+        value: production
