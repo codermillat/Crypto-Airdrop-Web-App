@@ -8,8 +8,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json'
   },
-  withCredentials: true,
-  timeout: 30000
+  withCredentials: true
 });
 
 // Request interceptor
@@ -17,7 +16,6 @@ api.interceptors.request.use((config) => {
   const address = localStorage.getItem('wallet_address');
   if (address) {
     config.headers['x-wallet-address'] = address;
-    config.headers.Authorization = `Bearer ${address}`;
   }
   return config;
 }, (error) => {
@@ -32,10 +30,6 @@ api.interceptors.response.use(
     
     if (!error.response) {
       return Promise.reject(handleApiError(new Error('Network error. Please check your connection.')));
-    }
-
-    if (error.response.status === 404) {
-      return Promise.reject(handleApiError(new Error('Resource not found. Please try again later.')));
     }
 
     if (error.response.status === 401) {

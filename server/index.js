@@ -16,19 +16,17 @@ const port = process.env.PORT || 3000;
 const MONGODB_URI = process.env.MONGODB_URI;
 const FRONTEND_URL = process.env.URL || 'http://localhost:5173';
 
-// Database connection with initialization
 async function connectDB() {
   try {
     console.log('Connecting to MongoDB...');
     await connect(MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-      socketTimeoutMS: 45000, // Close sockets after 45s
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
     });
     console.log('Connected to MongoDB');
     
-    // Initialize database with sample data
     await initializeDatabase();
     console.log('Database initialized with sample data');
   } catch (err) {
@@ -37,17 +35,15 @@ async function connectDB() {
   }
 }
 
-// CORS configuration
 app.use(cors({
-  origin: [FRONTEND_URL, 'https://crypto-airdrop-paws.netlify.app'],
+  origin: [FRONTEND_URL, 'http://localhost:5173'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'address']
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-wallet-address']
 }));
 
 app.use(express.json());
 
-// Debug middleware
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path}`, {
     headers: req.headers,
@@ -57,18 +53,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', verifyWallet, adminRoutes);
 app.use('/api/data', verifyWallet, dataRoutes);
 app.use('/api/user', verifyWallet, userRoutes);
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   res.status(err.status || 500).json({ 
@@ -77,7 +70,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
 app.use((req, res) => {
   res.status(404).json({ 
     error: 'Resource not found',
@@ -86,7 +78,6 @@ app.use((req, res) => {
   });
 });
 
-// Start server
 connectDB().then(() => {
   app.listen(port, () => {
     console.log(`Server running on port ${port}`);

@@ -1,7 +1,6 @@
 import { useCallback, useEffect } from 'react';
-import { useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
 import { useWalletStore } from '../store/useWalletStore';
-import { fetchUser } from '../utils/api';
+import { fetchUser, registerWallet } from '../utils/api';
 import { useWallet } from '../providers/WalletProvider';
 
 export const useTonConnect = () => {
@@ -15,10 +14,14 @@ export const useTonConnect = () => {
 
     try {
       setAddress(address);
+      // First register/fetch wallet
+      const walletData = await registerWallet(address);
+      // Then fetch full user data
       const userData = await fetchUser();
+      
       setPoints(userData.points || 0);
       setUsername(userData.username);
-      setIsRegistered(userData.isRegistered);
+      setIsRegistered(!!userData.username);
       setReferralCode(userData.referralCode);
     } catch (error) {
       console.error('Failed to handle wallet connection:', error);
