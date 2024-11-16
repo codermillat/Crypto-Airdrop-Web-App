@@ -77,8 +77,8 @@ URL=http://localhost:5173
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/crypto-airdrop-web-app.git
-cd crypto-airdrop-web-app
+git clone https://github.com/codermillat/Crypto-Airdrop-Web-App.git
+cd Crypto-Airdrop-Web-App
 ```
 
 2. Install dependencies:
