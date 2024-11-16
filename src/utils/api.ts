@@ -2,7 +2,7 @@ import axios from 'axios';
 import { handleApiError } from './error';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   headers: {
     'Content-Type': 'application/json'
   },
@@ -16,6 +16,17 @@ api.interceptors.request.use((config) => {
   if (address) {
     config.headers['x-wallet-address'] = address;
   }
+  
+  // Log request in development
+  if (import.meta.env.DEV) {
+    console.log('API Request:', {
+      url: config.url,
+      method: config.method,
+      headers: config.headers,
+      data: config.data
+    });
+  }
+  
   return config;
 }, (error) => {
   return Promise.reject(handleApiError(error));
@@ -24,7 +35,17 @@ api.interceptors.request.use((config) => {
 // Response interceptor
 api.interceptors.response.use(
   response => response.data,
-  error => Promise.reject(handleApiError(error))
+  error => {
+    // Log errors in development
+    if (import.meta.env.DEV) {
+      console.error('API Error:', {
+        url: error.config?.url,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+    }
+    return Promise.reject(handleApiError(error));
+  }
 );
 
 // API functions
