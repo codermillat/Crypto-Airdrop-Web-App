@@ -10,7 +10,9 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: URL
-        value: https://paws-crypto.netlify.app
+        value: https://crypto-airdrop-paws.netlify.app
+      - key: VITE_APP_URL
+        value: https://crypto-airdrop-paws.netlify.app
       - key: PORT
         value: 10000
       - key: NODE_ENV
