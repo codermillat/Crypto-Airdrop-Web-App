@@ -13,11 +13,7 @@ const api = axios.create({
     'Content-Type': 'application/json'
   },
   withCredentials: true,
-  timeout: 15000,
-  retry: 3,
-  retryDelay: (retryCount) => {
-    return retryCount * 1000;
-  }
+  timeout: 15000
 });
 
 // Request interceptor
@@ -41,30 +37,51 @@ api.interceptors.request.use((config) => {
   return Promise.reject(handleApiError(error));
 });
 
-// Response interceptor with retry mechanism
+// Response interceptor
 api.interceptors.response.use(
   response => response.data,
-  async error => {
-    const { config, response } = error;
-    
-    if (import.meta.env.DEV) {
-      console.error('API Error:', response?.data || error.message);
-    }
+  error => Promise.reject(handleApiError(error))
+);
 
-    if (!response && config && config.retry > 0) {
-      config.retry -= 1;
-      const delayMs = config.retryDelay(config.retry);
-      await new Promise(resolve => setTimeout(resolve, delayMs));
-      return api(config);
-    }
+// API functions
+export const registerWallet = async (address: string) => {
+  return api.post('/auth/wallet', { address });
+};
 
-    if (!response) {
-      return Promise.reject(handleApiError(new Error('Network error. Please check your connection and try again.')));
-    }
+export const registerUser = async (username: string, telegramId?: string) => {
+  return api.post('/auth/register', { username, telegramId });
+};
 
-    if (response.status === 401) {
-      localStorage.removeItem('wallet_address');
-      if (window.location.pathname !== '/') {
-        window.location.href = '/';
-      }
-      return Promise.reject(handleApiError(new Error('Please connect your wall
+export const fetchUser = async () => {
+  return api.get('/user');
+};
+
+export const fetchTasks = async () => {
+  return api.get('/user/tasks');
+};
+
+export const claimReward = async (taskId: string) => {
+  return api.post('/user/claim-reward', { taskId });
+};
+
+export const fetchLeaderboard = async () => {
+  return api.get('/data/leaderboard');
+};
+
+export const getReferralCode = async () => {
+  return api.get('/data/referral-code');
+};
+
+export const submitReferral = async (referralCode: string) => {
+  return api.post('/data/referral', { referralCode });
+};
+
+export const fetchReferrals = async () => {
+  return api.get('/user/referrals');
+};
+
+export const fetchAllData = async () => {
+  return api.get('/data/all');
+};
+
+export default api;

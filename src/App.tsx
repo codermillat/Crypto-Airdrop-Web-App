@@ -14,7 +14,7 @@ import WalletProvider from './providers/WalletProvider';
 const App: React.FC = () => {
   // Use environment-specific manifest URL
   const manifestUrl = import.meta.env.PROD
-    ? 'https://crypto-airdrop-paws.netlify.app/tonconnect-manifest.json'
+    ? 'https://paws-crypto.netlify.app/tonconnect-manifest.json'
     : '/tonconnect-manifest.json';
 
   return (
@@ -26,7 +26,7 @@ const App: React.FC = () => {
         }}
         actionsConfiguration={{
           twaReturnUrl: import.meta.env.PROD 
-            ? 'https://crypto-airdrop-paws.netlify.app/'
+            ? 'https://paws-crypto.netlify.app/'
             : 'http://localhost:5173'
         }}
       >
