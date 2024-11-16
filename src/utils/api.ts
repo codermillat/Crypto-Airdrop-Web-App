@@ -1,14 +1,8 @@
 import axios from 'axios';
 import { handleApiError } from './error';
 
-const BASE_URL = import.meta.env.VITE_API_URL || (
-  import.meta.env.PROD 
-    ? 'https://paws-crypto-api.onrender.com/api'
-    : 'http://localhost:3000/api'
-);
-
 const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json'
   },
@@ -22,16 +16,6 @@ api.interceptors.request.use((config) => {
   if (address) {
     config.headers['x-wallet-address'] = address;
   }
-  
-  if (import.meta.env.DEV) {
-    console.log('API Request:', {
-      url: config.url,
-      method: config.method,
-      data: config.data,
-      headers: config.headers
-    });
-  }
-  
   return config;
 }, (error) => {
   return Promise.reject(handleApiError(error));
@@ -69,11 +53,11 @@ export const fetchLeaderboard = async () => {
 };
 
 export const getReferralCode = async () => {
-  return api.get('/data/referral-code');
+  return api.get('/user/referral-code');
 };
 
 export const submitReferral = async (referralCode: string) => {
-  return api.post('/data/referral', { referralCode });
+  return api.post('/user/referral', { referralCode });
 };
 
 export const fetchReferrals = async () => {

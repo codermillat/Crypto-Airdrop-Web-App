@@ -13,7 +13,14 @@ const UsernameModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const [telegramId, setTelegramId] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { setUsername: setStoreUsername, setIsRegistered } = useWalletStore();
+  const { setUsername: setStoreUsername, setIsRegistered, isRegistered } = useWalletStore();
+
+  useEffect(() => {
+    // Close modal if user is already registered
+    if (isRegistered) {
+      onClose();
+    }
+  }, [isRegistered, onClose]);
 
   useEffect(() => {
     // Check for Telegram WebApp data
@@ -52,7 +59,7 @@ const UsernameModal: React.FC<Props> = ({ isOpen, onClose }) => {
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || isRegistered) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">

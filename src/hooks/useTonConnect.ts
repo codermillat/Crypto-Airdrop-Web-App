@@ -14,17 +14,29 @@ export const useTonConnect = () => {
 
     try {
       setAddress(address);
-      // First register/fetch wallet
       const walletData = await registerWallet(address);
-      // Then fetch full user data
-      const userData = await fetchUser();
       
+      if (!walletData || !walletData.address) {
+        throw new Error('Invalid wallet data received');
+      }
+
+      const userData = await fetchUser();
+      if (!userData) {
+        throw new Error('Failed to fetch user data');
+      }
+
       setPoints(userData.points || 0);
       setUsername(userData.username);
       setIsRegistered(!!userData.username);
       setReferralCode(userData.referralCode);
     } catch (error) {
       console.error('Failed to handle wallet connection:', error);
+      setAddress(null);
+      setPoints(0);
+      setUsername(null);
+      setIsRegistered(false);
+      setReferralCode(null);
+      localStorage.removeItem('wallet_address');
     }
   }, [isInitialized, isConnected, address, setAddress, setPoints, setUsername, setIsRegistered, setReferralCode]);
 
@@ -33,7 +45,7 @@ export const useTonConnect = () => {
   }, [handleConnection]);
 
   return {
-    connected: isConnected,
+    connected: isConnected && !!address,
     address,
     isInitialized,
     connect,

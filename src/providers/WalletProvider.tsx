@@ -41,28 +41,22 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
     resetWalletState 
   } = useWalletStore();
 
-  // Register or fetch wallet data with retry mechanism
-  const registerOrFetchWallet = async (address: string, retryCount = 3) => {
+  const registerOrFetchWallet = async (address: string, retryCount = 3): Promise<any> => {
     try {
-      if (import.meta.env.DEV) {
-        console.log('Registering/fetching wallet:', address);
-      }
-      
       const userData = await registerWallet(address);
       
-      if (import.meta.env.DEV) {
-        console.log('User data received:', userData);
+      if (!userData || !userData.address) {
+        throw new Error('Invalid wallet data received');
       }
-      
-      setPoints(userData.data.points);
-      setUsername(userData.data.username);
-      setIsRegistered(!!userData.data.username);
-      setReferralCode(userData.data.referralCode);
+
+      setPoints(userData.points || 0);
+      setUsername(userData.username);
+      setIsRegistered(!!userData.username);
+      setReferralCode(userData.referralCode);
       
       return userData;
     } catch (err) {
-      if (retryCount > 0 && (err instanceof Error && err.message.includes('Network error'))) {
-        // Wait for 1 second before retrying
+      if (retryCount > 0) {
         await new Promise(resolve => setTimeout(resolve, 1000));
         return registerOrFetchWallet(address, retryCount - 1);
       }
@@ -70,7 +64,6 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
     }
   };
 
-  // Initialize TonConnect with timeout and retry
   useEffect(() => {
     let mounted = true;
     let initTimeout: NodeJS.Timeout;
@@ -110,11 +103,13 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
 
         if (mounted) {
           setIsInitialized(true);
+          setError(null);
         }
       } catch (err) {
-        console.error('Wallet initialization error:', err);
         if (mounted) {
-          setError(err instanceof Error ? err : new Error('Failed to initialize wallet'));
+          const error = err instanceof Error ? err : new Error('Failed to initialize wallet');
+          console.error('Wallet initialization error:', error);
+          setError(error);
           setIsInitialized(false);
         }
       }
@@ -130,35 +125,30 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
     };
   }, [tonConnectUI]);
 
-  // Handle address changes with retry mechanism
   useEffect(() => {
     const handleAddressChange = async () => {
-      if (isInitialized && tonConnectUI?.connector) {
-        if (userAddress) {
-          if (import.meta.env.DEV) {
-            console.log('Address changed:', userAddress);
-          }
+      if (!isInitialized || !tonConnectUI?.connector) return;
+
+      if (userAddress) {
+        try {
           setAddress(userAddress);
           localStorage.setItem('wallet_address', userAddress);
-          try {
-            await registerOrFetchWallet(userAddress);
-          } catch (error) {
-            console.error('Failed to handle address change:', error);
-            // Show user-friendly error message
-            setError(new Error('Failed to connect wallet. Please try again.'));
-          }
-        } else {
-          if (import.meta.env.DEV) {
-            console.log('Address cleared');
-          }
+          await registerOrFetchWallet(userAddress);
+          setError(null);
+        } catch (error) {
+          console.error('Failed to handle address change:', error);
+          setError(new Error('Failed to connect wallet. Please try again.'));
           resetWalletState();
           localStorage.removeItem('wallet_address');
         }
+      } else {
+        resetWalletState();
+        localStorage.removeItem('wallet_address');
       }
     };
 
     handleAddressChange();
-  }, [isInitialized, userAddress, setAddress, resetWalletState, tonConnectUI]);
+  }, [isInitialized, userAddress, tonConnectUI, setAddress, resetWalletState]);
 
   const connect = useCallback(async () => {
     if (!tonConnectUI?.connector || !isInitialized) {
@@ -169,8 +159,8 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
       setError(null);
       await tonConnectUI.connectWallet();
     } catch (err) {
-      console.error('Wallet connection error:', err);
       const error = err instanceof Error ? err : new Error('Failed to connect wallet');
+      console.error('Wallet connection error:', error);
       setError(error);
       throw error;
     }
@@ -187,8 +177,8 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
       resetWalletState();
       localStorage.removeItem('wallet_address');
     } catch (err) {
-      console.error('Wallet disconnection error:', err);
       const error = err instanceof Error ? err : new Error('Failed to disconnect wallet');
+      console.error('Wallet disconnection error:', error);
       setError(error);
       throw error;
     }

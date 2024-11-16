@@ -23,8 +23,9 @@ const FriendsList = () => {
       try {
         setError(null);
         const data = await fetchReferrals();
-        setFriends(data);
+        setFriends(Array.isArray(data) ? data : []);
       } catch (err: any) {
+        console.error('Failed to load referrals:', err);
         setError(err?.message || 'Unable to load referrals. Please try again later.');
       } finally {
         setLoading(false);

@@ -11,7 +11,7 @@ const WalletConnectInner = () => {
     return (
       <div className="flex items-center justify-center space-x-2 text-red-500 p-2">
         <AlertCircle className="w-5 h-5" />
-        <span className="text-sm">Connection error</span>
+        <span className="text-sm">{error.message}</span>
       </div>
     );
   }
