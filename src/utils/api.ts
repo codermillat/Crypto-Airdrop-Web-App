@@ -13,11 +13,10 @@ const api = axios.create({
     'Content-Type': 'application/json'
   },
   withCredentials: true,
-  timeout: 15000, // 15 second timeout
-  // Retry configuration
+  timeout: 15000,
   retry: 3,
   retryDelay: (retryCount) => {
-    return retryCount * 1000; // time interval between retries
+    return retryCount * 1000;
   }
 });
 
@@ -28,7 +27,6 @@ api.interceptors.request.use((config) => {
     config.headers['x-wallet-address'] = address;
   }
   
-  // Log request in development
   if (import.meta.env.DEV) {
     console.log('API Request:', {
       url: config.url,
@@ -49,12 +47,10 @@ api.interceptors.response.use(
   async error => {
     const { config, response } = error;
     
-    // Log error in development
     if (import.meta.env.DEV) {
       console.error('API Error:', response?.data || error.message);
     }
 
-    // Retry the request if it failed due to network issues
     if (!response && config && config.retry > 0) {
       config.retry -= 1;
       const delayMs = config.retryDelay(config.retry);
@@ -71,26 +67,4 @@ api.interceptors.response.use(
       if (window.location.pathname !== '/') {
         window.location.href = '/';
       }
-      return Promise.reject(handleApiError(new Error('Please connect your wallet')));
-    }
-
-    const errorMessage = response.data?.error || error.message;
-    return Promise.reject(handleApiError(new Error(errorMessage)));
-  }
-);
-
-export const registerWallet = (address: string) => 
-  api.post('/auth/wallet', { address });
-
-export const registerUser = (username: string, telegramId?: string) => 
-  api.post('/auth/register', { username, telegramId });
-
-export const fetchUser = () => api.get('/user');
-export const fetchTasks = () => api.get('/user/tasks');
-export const claimReward = (taskId: string) => api.post('/user/claim-reward', { taskId });
-export const fetchLeaderboard = () => api.get('/data/leaderboard');
-export const submitReferral = (referralCode: string) => api.post('/data/referral', { referralCode });
-export const getReferralCode = () => api.get('/data/referral-code');
-export const fetchAllData = () => api.get('/data/all');
-
-export default api;
+      return Promise.reject(handleApiError(new Error('Please connect your wall
