@@ -11,6 +11,7 @@ import Admin from './pages/Admin';
 import ErrorBoundary from './components/ErrorBoundary';
 import WalletProvider from './providers/WalletProvider';
 
+
 const App: React.FC = () => {
   // Use environment-specific manifest URL
   const manifestUrl = import.meta.env.PROD
