@@ -12,18 +12,24 @@ import ErrorBoundary from './components/ErrorBoundary';
 import WalletProvider from './providers/WalletProvider';
 
 const App: React.FC = () => {
-  const appUrl = import.meta.env.VITE_APP_URL || window.location.origin;
-  const manifestUrl = `${appUrl}/tonconnect-manifest.json`;
+  const manifestUrl = `${window.location.origin}/tonconnect-manifest.json`;
 
   return (
     <ErrorBoundary>
       <TonConnectUIProvider 
         manifestUrl={manifestUrl}
         uiPreferences={{
-          theme: 'SYSTEM'
+          theme: 'SYSTEM',
+          colorsSet: {
+            connectButton: {
+              background: '#3B82F6',
+              foreground: '#FFFFFF'
+            }
+          }
         }}
         actionsConfiguration={{
-          twaReturnUrl: appUrl
+          twaReturnUrl: window.location.origin,
+          skipRedirectToWallet: false
         }}
       >
         <WalletProvider>

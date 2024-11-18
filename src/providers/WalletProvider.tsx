@@ -31,7 +31,7 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [tonConnectUI] = useTonConnectUI();
-  const userAddress = useTonAddress();
+  const userAddress = useTonAddress(false);
   const { 
     setAddress, 
     setPoints, 
@@ -66,51 +66,21 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
 
   useEffect(() => {
     let mounted = true;
-    let initTimeout: NodeJS.Timeout;
 
     const initializeWallet = async () => {
       try {
-        if (!tonConnectUI) {
-          throw new Error('TonConnect UI not available');
-        }
-
-        setError(null);
+        if (!tonConnectUI) return;
         
-        await new Promise<void>((resolve, reject) => {
-          let attempts = 0;
-          const maxAttempts = 50;
-          const checkInterval = 100;
-          
-          const checkConnection = () => {
-            if (!mounted) return;
-
-            if (tonConnectUI?.connector && typeof tonConnectUI.connector.connected !== 'undefined') {
-              resolve();
-              return;
-            }
-
-            if (attempts >= maxAttempts) {
-              reject(new Error('Wallet initialization timeout'));
-              return;
-            }
-
-            attempts++;
-            initTimeout = setTimeout(checkConnection, checkInterval);
-          };
-          
-          checkConnection();
-        });
-
+        setError(null);
+        await tonConnectUI.connectionRestored;
+        
         if (mounted) {
           setIsInitialized(true);
-          setError(null);
         }
       } catch (err) {
         if (mounted) {
-          const error = err instanceof Error ? err : new Error('Failed to initialize wallet');
-          console.error('Wallet initialization error:', error);
-          setError(error);
-          setIsInitialized(false);
+          console.error('Wallet initialization error:', err);
+          setError(err instanceof Error ? err : new Error('Failed to initialize wallet'));
         }
       }
     };
@@ -119,9 +89,6 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
 
     return () => {
       mounted = false;
-      if (initTimeout) {
-        clearTimeout(initTimeout);
-      }
     };
   }, [tonConnectUI]);
 

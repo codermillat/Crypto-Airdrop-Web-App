@@ -15,7 +15,8 @@
     "start": "npm run dev"
   },
   "dependencies": {
-    "@tonconnect/ui-react": "^2.0.0",
+    "@tonconnect/ui-react": "^2.0.0-beta.11",
+    "@tonconnect/sdk": "^3.0.0",
     "axios": "^1.6.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
