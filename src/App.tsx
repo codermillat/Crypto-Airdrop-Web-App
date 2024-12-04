@@ -10,49 +10,52 @@ import Earn from './pages/Earn';
 import Admin from './pages/Admin';
 import ErrorBoundary from './components/ErrorBoundary';
 import WalletProvider from './providers/WalletProvider';
-import TelegramAppCheck from './components/TelegramAppCheck';
+import TelegramAppCheck from './components/telegram/TelegramAppCheck';
+import SyncCheck from './components/SyncCheck';
 
 const App: React.FC = () => {
   const manifestUrl = `${window.location.origin}/tonconnect-manifest.json`;
 
   return (
     <ErrorBoundary>
-      <TelegramAppCheck>
-        <TonConnectUIProvider 
-          manifestUrl={manifestUrl}
-          uiPreferences={{
-            theme: 'SYSTEM',
-            colorsSet: {
-              connectButton: {
-                background: '#3B82F6',
-                foreground: '#FFFFFF'
+      <SyncCheck>
+        <TelegramAppCheck>
+          <TonConnectUIProvider 
+            manifestUrl={manifestUrl}
+            uiPreferences={{
+              theme: 'SYSTEM',
+              colorsSet: {
+                connectButton: {
+                  background: '#3B82F6',
+                  foreground: '#FFFFFF'
+                }
               }
-            }
-          }}
-          actionsConfiguration={{
-            twaReturnUrl: window.location.origin,
-            skipRedirectToWallet: false
-          }}
-        >
-          <WalletProvider>
-            <BrowserRouter>
-              <div className="min-h-screen bg-black text-white">
-                <div className="max-w-lg mx-auto pb-20">
-                  <Routes>
-                    <Route path="/" element={<Home />} />
-                    <Route path="/tasks" element={<Tasks />} />
-                    <Route path="/leaderboard" element={<Leaderboard />} />
-                    <Route path="/friends" element={<Friends />} />
-                    <Route path="/earn" element={<Earn />} />
-                    <Route path="/admin" element={<Admin />} />
-                  </Routes>
-                  <Navigation />
+            }}
+            actionsConfiguration={{
+              twaReturnUrl: window.location.origin,
+              skipRedirectToWallet: false
+            }}
+          >
+            <WalletProvider>
+              <BrowserRouter>
+                <div className="min-h-screen bg-black text-white">
+                  <div className="max-w-lg mx-auto pb-20">
+                    <Routes>
+                      <Route path="/" element={<Home />} />
+                      <Route path="/tasks" element={<Tasks />} />
+                      <Route path="/leaderboard" element={<Leaderboard />} />
+                      <Route path="/friends" element={<Friends />} />
+                      <Route path="/earn" element={<Earn />} />
+                      <Route path="/admin" element={<Admin />} />
+                    </Routes>
+                    <Navigation />
+                  </div>
                 </div>
-              </div>
-            </BrowserRouter>
-          </WalletProvider>
-        </TonConnectUIProvider>
-      </TelegramAppCheck>
+              </BrowserRouter>
+            </WalletProvider>
+          </TonConnectUIProvider>
+        </TelegramAppCheck>
+      </SyncCheck>
     </ErrorBoundary>
   );
 };
