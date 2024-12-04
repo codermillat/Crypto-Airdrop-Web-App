@@ -1,31 +1,21 @@
-import { TelegramUser, TelegramWebApp } from '../types/telegram';
-
-const BOT_TOKEN = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
-const BOT_USERNAME = import.meta.env.VITE_TELEGRAM_BOT_USERNAME;
-
-export const getTelegramBotUsername = (): string => {
-  return BOT_USERNAME;
-};
+import { TelegramUser } from '../types/telegram';
 
 export const isTelegramWebApp = (): boolean => {
   try {
-    if (typeof window === 'undefined') return false;
-    
+    // Check if we're in a Telegram WebApp environment
     if (window.Telegram?.WebApp) {
       return true;
     }
 
+    // Check URL parameters that indicate Telegram WebApp
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.has('tgWebAppData') || searchParams.has('tgWebAppStartParam')) {
+      return true;
+    }
+
+    // Check if we're in Telegram's in-app browser
     const userAgent = navigator.userAgent.toLowerCase();
-    if (userAgent.includes('telegram') || userAgent.includes('tgweb')) {
-      return true;
-    }
-
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('tgWebAppStartParam') || urlParams.has('tgWebAppData')) {
-      return true;
-    }
-
-    return false;
+    return userAgent.includes('telegram') || userAgent.includes('tgweb');
   } catch (error) {
     console.error('Error checking Telegram WebApp:', error);
     return false;
@@ -34,13 +24,7 @@ export const isTelegramWebApp = (): boolean => {
 
 export const getTelegramWebAppUser = (): TelegramUser | null => {
   try {
-    if (!isTelegramWebApp()) return null;
-    const user = window.Telegram?.WebApp.initDataUnsafe.user;
-    if (!user) {
-      console.warn('No user data found in Telegram WebApp');
-      return null;
-    }
-    return user;
+    return window.Telegram?.WebApp?.initDataUnsafe?.user || null;
   } catch (error) {
     console.error('Error getting Telegram user:', error);
     return null;
@@ -48,36 +32,13 @@ export const getTelegramWebAppUser = (): TelegramUser | null => {
 };
 
 export const validateTelegramUser = (user: TelegramUser | null): boolean => {
-  try {
-    if (!user) {
-      console.warn('No user provided for validation');
-      return false;
-    }
-    if (!user.username) {
-      console.warn('User has no username');
-      return false;
-    }
-    return true;
-  } catch (error) {
-    console.error('Error validating Telegram user:', error);
-    return false;
-  }
-};
-
-export const getTelegramUsername = (): string | null => {
-  try {
-    const user = getTelegramWebAppUser();
-    return user?.username || null;
-  } catch (error) {
-    console.error('Error getting Telegram username:', error);
-    return null;
-  }
+  if (!user) return false;
+  return true;
 };
 
 export const getTelegramPlatform = (): string => {
   try {
-    if (!window.Telegram?.WebApp) return 'unknown';
-    return window.Telegram.WebApp.platform || 'unknown';
+    return window.Telegram?.WebApp?.platform || 'unknown';
   } catch (error) {
     console.error('Error getting Telegram platform:', error);
     return 'unknown';
@@ -86,14 +47,27 @@ export const getTelegramPlatform = (): string => {
 
 export const initializeTelegramWebApp = (): void => {
   try {
-    if (!window.Telegram?.WebApp) {
-      console.warn('Telegram WebApp not available');
-      return;
+    const webApp = window.Telegram?.WebApp;
+    if (!webApp) return;
+
+    // Expand to full height
+    webApp.expand();
+
+    // Set theme colors
+    if (webApp.setHeaderColor) {
+      webApp.setHeaderColor('#000000');
+    }
+    if (webApp.setBackgroundColor) {
+      webApp.setBackgroundColor('#000000');
     }
 
-    window.Telegram.WebApp.isExpanded = true;
-    window.Telegram.WebApp.headerColor = '#000000';
-    window.Telegram.WebApp.backgroundColor = '#000000';
+    // Enable haptic feedback
+    if (webApp.HapticFeedback) {
+      webApp.HapticFeedback.notificationOccurred('success');
+    }
+
+    // Mark as ready
+    webApp.ready();
   } catch (error) {
     console.error('Error initializing Telegram WebApp:', error);
   }
