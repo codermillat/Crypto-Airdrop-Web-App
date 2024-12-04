@@ -1,6 +1,5 @@
 import axios from 'axios';
-import { getTelegramWebAppUser, validateTelegramUser } from './telegram';
-import { ApiError } from './error';
+import { getWebAppData } from './telegram';
 
 interface SyncStatus {
   api: boolean;
@@ -10,7 +9,9 @@ interface SyncStatus {
 
 export const checkApiHealth = async (): Promise<boolean> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/health`);
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/health`, {
+      timeout: 5000
+    });
     return response.data?.status === 'ok';
   } catch (error) {
     console.error('API health check failed:', error);
@@ -20,7 +21,9 @@ export const checkApiHealth = async (): Promise<boolean> => {
 
 export const checkDatabaseConnection = async (): Promise<boolean> => {
   try {
-    const response = await axios.get(`${import.meta.env.VITE_API_URL}/health`);
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/health`, {
+      timeout: 5000
+    });
     return response.data?.database === 'connected';
   } catch (error) {
     console.error('Database connection check failed:', error);
@@ -29,8 +32,13 @@ export const checkDatabaseConnection = async (): Promise<boolean> => {
 };
 
 export const checkTelegramConnection = (): boolean => {
-  const user = getTelegramWebAppUser();
-  return validateTelegramUser(user);
+  try {
+    const webAppData = getWebAppData();
+    return !!webAppData && !!webAppData.user;
+  } catch (error) {
+    console.error('Telegram connection check failed:', error);
+    return false;
+  }
 };
 
 export const syncServices = async (): Promise<{ status: SyncStatus; error?: string }> => {
@@ -41,27 +49,37 @@ export const syncServices = async (): Promise<{ status: SyncStatus; error?: stri
   };
 
   try {
-    // Check API
-    status.api = await checkApiHealth();
-    if (!status.api) {
-      throw new ApiError('API service is not available');
-    }
-
-    // Check Database
-    status.database = await checkDatabaseConnection();
-    if (!status.database) {
-      throw new ApiError('Database connection failed');
-    }
-
-    // Check Telegram
+    // Check Telegram first as it's required
     status.telegram = checkTelegramConnection();
     if (!status.telegram) {
-      throw new ApiError('Telegram connection failed. Please open the app in Telegram.');
+      return { 
+        status, 
+        error: 'Please open the app in Telegram' 
+      };
+    }
+
+    // Check API and Database in parallel
+    const [apiStatus, dbStatus] = await Promise.all([
+      checkApiHealth(),
+      checkDatabaseConnection()
+    ]);
+
+    status.api = apiStatus;
+    status.database = dbStatus;
+
+    if (!apiStatus || !dbStatus) {
+      return { 
+        status,
+        error: 'Some services are not available. Please try again later.'
+      };
     }
 
     return { status };
   } catch (error) {
-    const errorMessage = error instanceof ApiError ? error.message : 'Service synchronization failed';
-    return { status, error: errorMessage };
+    console.error('Service sync error:', error);
+    return { 
+      status, 
+      error: 'Failed to connect to services. Please try again.' 
+    };
   }
 };

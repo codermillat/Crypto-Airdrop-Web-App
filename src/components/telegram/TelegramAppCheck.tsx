@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
-import { isTelegramWebApp, initializeTelegramWebApp, getTelegramBotUsername } from '../../utils/telegram';
+import { setupWebApp, getWebAppData } from '../../utils/telegram';
 import LoadingState from '../common/LoadingState';
 import ErrorState from '../common/ErrorState';
 
@@ -14,48 +14,49 @@ const TelegramAppCheck: React.FC<Props> = ({ children }) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkPlatform = () => {
+    const initializeTelegram = async () => {
       try {
-        const isTelegram = isTelegramWebApp();
-        setIsValidPlatform(isTelegram);
-        
-        if (isTelegram) {
-          initializeTelegramWebApp();
+        // Check if we're in Telegram WebApp
+        const webAppData = getWebAppData();
+        if (!webAppData) {
+          setError('This app must be opened in Telegram');
+          setIsValidPlatform(false);
+          return;
         }
-        
+
+        // Initialize WebApp
+        setupWebApp();
+        setIsValidPlatform(true);
         setError(null);
-      } catch (err) {
-        console.error('Error checking platform:', err);
-        setError('Failed to initialize Telegram app');
+      } catch (err: any) {
+        console.error('Telegram initialization error:', err);
+        setError(err?.message || 'Failed to initialize Telegram app');
         setIsValidPlatform(false);
       } finally {
         setIsChecking(false);
       }
     };
 
-    const timeoutId = setTimeout(checkPlatform, 100);
-    return () => clearTimeout(timeoutId);
+    initializeTelegram();
   }, []);
 
   if (isChecking) {
     return <LoadingState message="Initializing..." />;
   }
 
-  if (error) {
-    return <ErrorState message={error} onRetry={() => window.location.reload()} />;
-  }
-
-  if (!isValidPlatform) {
+  if (error || !isValidPlatform) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center p-4">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h1 className="text-xl font-bold mb-2">Access Restricted</h1>
           <p className="text-gray-400 mb-4">
-            This app is only accessible through Telegram.
+            {error || 'This app is only accessible through Telegram.'}
           </p>
           <a 
-            href={`https://t.me/${getTelegramBotUsername()}`}
+            href={`https://t.me/${import.meta.env.VITE_TELEGRAM_BOT_USERNAME}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="mt-4 inline-block bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
           >
             Open in Telegram
