@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
-import { isTelegramWebApp, initializeTelegramWebApp } from '../../utils/telegram';
+import { isTelegramWebApp, initializeTelegramWebApp, getTelegramBotUsername } from '../../utils/telegram';
 import LoadingState from '../common/LoadingState';
+import ErrorState from '../common/ErrorState';
 
 interface Props {
   children: React.ReactNode;
@@ -10,17 +11,26 @@ interface Props {
 const TelegramAppCheck: React.FC<Props> = ({ children }) => {
   const [isValidPlatform, setIsValidPlatform] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const checkPlatform = () => {
-      const isTelegram = isTelegramWebApp();
-      setIsValidPlatform(isTelegram);
-      
-      if (isTelegram) {
-        initializeTelegramWebApp();
+      try {
+        const isTelegram = isTelegramWebApp();
+        setIsValidPlatform(isTelegram);
+        
+        if (isTelegram) {
+          initializeTelegramWebApp();
+        }
+        
+        setError(null);
+      } catch (err) {
+        console.error('Error checking platform:', err);
+        setError('Failed to initialize Telegram app');
+        setIsValidPlatform(false);
+      } finally {
+        setIsChecking(false);
       }
-      
-      setIsChecking(false);
     };
 
     const timeoutId = setTimeout(checkPlatform, 100);
@@ -28,7 +38,11 @@ const TelegramAppCheck: React.FC<Props> = ({ children }) => {
   }, []);
 
   if (isChecking) {
-    return <LoadingState message="Loading..." />;
+    return <LoadingState message="Initializing..." />;
+  }
+
+  if (error) {
+    return <ErrorState message={error} onRetry={() => window.location.reload()} />;
   }
 
   if (!isValidPlatform) {
@@ -41,7 +55,7 @@ const TelegramAppCheck: React.FC<Props> = ({ children }) => {
             This app is only accessible through Telegram.
           </p>
           <a 
-            href="https://t.me/TonFunZoneBot"
+            href={`https://t.me/${getTelegramBotUsername()}`}
             className="mt-4 inline-block bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
           >
             Open in Telegram
