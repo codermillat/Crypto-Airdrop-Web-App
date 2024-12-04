@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
-import { isTelegramWebApp, initializeTelegramWebApp } from '../../utils/telegram';
+import { isWebAppAvailable, initializeWebApp } from '../../utils/telegram/webapp';
 import LoadingState from '../common/LoadingState';
 import { getTelegramBotUsername } from '../../utils/config';
 
@@ -11,29 +11,39 @@ interface Props {
 const TelegramAppCheck: React.FC<Props> = ({ children }) => {
   const [isValidPlatform, setIsValidPlatform] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkAndInitialize = () => {
-      const isTelegram = isTelegramWebApp();
-      setIsValidPlatform(isTelegram);
+    const checkAndInitialize = async () => {
+      try {
+        const isValid = await isWebAppAvailable();
+        
+        if (!isValid) {
+          setError('Please open the app in Telegram');
+          setIsValidPlatform(false);
+          return;
+        }
 
-      if (isTelegram) {
-        initializeTelegramWebApp();
+        await initializeWebApp();
+        setIsValidPlatform(true);
+        setError(null);
+      } catch (err) {
+        console.error('Telegram initialization error:', err);
+        setError('Failed to initialize Telegram WebApp');
+        setIsValidPlatform(false);
+      } finally {
+        setIsChecking(false);
       }
-
-      setIsChecking(false);
     };
 
-    // Add a small delay to ensure Telegram WebApp API is fully loaded
-    const timeoutId = setTimeout(checkAndInitialize, 500);
-    return () => clearTimeout(timeoutId);
+    checkAndInitialize();
   }, []);
 
   if (isChecking) {
     return <LoadingState message="Initializing..." />;
   }
 
-  if (!isValidPlatform) {
+  if (!isValidPlatform || error) {
     const botUsername = getTelegramBotUsername();
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -41,7 +51,7 @@ const TelegramAppCheck: React.FC<Props> = ({ children }) => {
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h1 className="text-xl font-bold mb-2">Access Restricted</h1>
           <p className="text-gray-400 mb-4">
-            This app must be opened through Telegram
+            {error || 'This app must be opened through Telegram'}
           </p>
           <a 
             href={`https://t.me/${botUsername}`}

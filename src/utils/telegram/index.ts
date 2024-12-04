@@ -1,30 +1,14 @@
 export * from './webapp';
-
-export const isTelegramWebApp = (): boolean => {
-  try {
-    // Check if we're in a Telegram WebApp environment
-    if (window.Telegram?.WebApp) {
-      return true;
-    }
-
-    // Check URL parameters that indicate Telegram WebApp
-    const searchParams = new URLSearchParams(window.location.search);
-    if (searchParams.has('tgWebAppData') || searchParams.has('tgWebAppStartParam')) {
-      return true;
-    }
-
-    // Check if we're in Telegram's in-app browser
-    const userAgent = navigator.userAgent.toLowerCase();
-    return userAgent.includes('telegram') || userAgent.includes('tgweb');
-  } catch (error) {
-    console.error('Error checking Telegram WebApp:', error);
-    return false;
-  }
-};
+export * from './security';
+export * from './types';
 
 export const getTelegramWebAppUser = () => {
   try {
-    return window.Telegram?.WebApp?.initDataUnsafe?.user || null;
+    const webApp = window.Telegram?.WebApp;
+    if (!webApp?.initDataUnsafe?.user) {
+      throw new Error('No Telegram user data available');
+    }
+    return webApp.initDataUnsafe.user;
   } catch (error) {
     console.error('Error getting Telegram user:', error);
     return null;
@@ -32,7 +16,9 @@ export const getTelegramWebAppUser = () => {
 };
 
 export const validateTelegramUser = (user: any): boolean => {
-  if (!user) return false;
+  if (!user?.id || !user?.first_name) {
+    return false;
+  }
   return true;
 };
 
@@ -42,11 +28,5 @@ export const getTelegramPlatform = (): string => {
   } catch (error) {
     console.error('Error getting Telegram platform:', error);
     return 'unknown';
-  }
-};
-
-export const initializeTelegramWebApp = (): void => {
-  if (isWebAppAvailable()) {
-    initializeWebApp();
   }
 };
