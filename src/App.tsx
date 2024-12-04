@@ -12,9 +12,10 @@ import ErrorBoundary from './components/ErrorBoundary';
 import WalletProvider from './providers/WalletProvider';
 import TelegramAppCheck from './components/telegram/TelegramAppCheck';
 import SyncCheck from './components/SyncCheck';
+import { getManifestUrl } from './utils/config';
 
 const App: React.FC = () => {
-  const manifestUrl = `${window.location.href}/tonconnect-manifest.json`;
+  const manifestUrl = getManifestUrl();
 
   return (
     <ErrorBoundary>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { isTelegramWebApp, initializeTelegramWebApp } from '../../utils/telegram';
 import LoadingState from '../common/LoadingState';
+import { getTelegramBotUsername } from '../../utils/config';
 
 interface Props {
   children: React.ReactNode;
@@ -33,6 +34,7 @@ const TelegramAppCheck: React.FC<Props> = ({ children }) => {
   }
 
   if (!isValidPlatform) {
+    const botUsername = getTelegramBotUsername();
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center p-4">
@@ -42,7 +44,7 @@ const TelegramAppCheck: React.FC<Props> = ({ children }) => {
             This app must be opened through Telegram
           </p>
           <a 
-            href={`https://t.me/${import.meta.env.VITE_TELEGRAM_BOT_USERNAME}`}
+            href={`https://t.me/${botUsername}`}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-4 inline-block bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
