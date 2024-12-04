@@ -1,44 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
-import { isWebAppInitialized, initializeWebApp, InitializationError } from '../../utils/telegram/init';
-import { validatePlatform } from '../../utils/telegram/validation';
-import { getPlatformInfo } from '../../utils/telegram/platform';
+import { isTelegramEnvironment } from '../../utils/telegram/environment';
+import { waitForWebApp, configureWebApp, WebAppError } from '../../utils/telegram/webApp';
 import LoadingState from '../common/LoadingState';
-import { getTelegramBotUsername } from '../../utils/config';
+import ErrorState from '../common/ErrorState';
 
 interface Props {
   children: React.ReactNode;
 }
 
 const TelegramAppCheck: React.FC<Props> = ({ children }) => {
-  const [isValidPlatform, setIsValidPlatform] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkAndInitialize = async () => {
+    const initialize = async () => {
       try {
-        if (!validatePlatform()) {
+        // Check environment first
+        if (!isTelegramEnvironment()) {
           setError('Please open the app in Telegram');
           return;
         }
 
-        const isInitialized = await isWebAppInitialized();
-        if (!isInitialized) {
-          setError('Telegram WebApp initialization failed');
-          return;
-        }
-
-        await initializeWebApp();
-        const { platform, version } = getPlatformInfo();
-        console.log(`Initialized on ${platform} platform, version ${version}`);
+        // Wait for and configure WebApp
+        const webApp = await waitForWebApp();
+        configureWebApp(webApp);
         
-        setIsValidPlatform(true);
+        setIsReady(true);
         setError(null);
       } catch (err) {
         console.error('Telegram initialization error:', err);
         setError(
-          err instanceof InitializationError 
+          err instanceof WebAppError 
             ? err.message 
             : 'Failed to initialize Telegram WebApp'
         );
@@ -47,33 +41,20 @@ const TelegramAppCheck: React.FC<Props> = ({ children }) => {
       }
     };
 
-    checkAndInitialize();
+    initialize();
   }, []);
 
   if (isChecking) {
     return <LoadingState message="Initializing..." />;
   }
 
-  if (!isValidPlatform || error) {
-    const botUsername = getTelegramBotUsername();
+  if (!isReady || error) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-center p-4">
-          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-xl font-bold mb-2">Access Restricted</h1>
-          <p className="text-gray-400 mb-4">
-            {error || 'This app must be opened through Telegram'}
-          </p>
-          <a 
-            href={`https://t.me/${botUsername}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-block bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
-          >
-            Open in Telegram
-          </a>
-        </div>
-      </div>
+      <ErrorState 
+        message={error || 'Please open the app in Telegram'} 
+        actionUrl="https://t.me/your_bot"
+        actionText="Open in Telegram"
+      />
     );
   }
 
