@@ -1,6 +1,6 @@
 import { TelegramWebApp } from '../../types/telegram';
 
-const TELEGRAM_WEB_APP_TIMEOUT = 3000; // 3 seconds timeout
+const TELEGRAM_WEB_APP_TIMEOUT = 10000; // Increased timeout to 10 seconds
 
 export const getWebApp = (): TelegramWebApp | null => {
   return window.Telegram?.WebApp || null;
@@ -17,7 +17,7 @@ export const waitForWebApp = async (): Promise<TelegramWebApp> => {
     await new Promise(resolve => setTimeout(resolve, 100));
   }
   
-  throw new Error('Telegram WebApp not available');
+  throw new Error('Telegram WebApp not available after timeout');
 };
 
 export const initializeWebApp = async (): Promise<void> => {
@@ -52,6 +52,14 @@ export const initializeWebApp = async (): Promise<void> => {
     console.log('Telegram WebApp initialized successfully');
   } catch (error) {
     console.error('Failed to initialize Telegram WebApp:', error);
+    // Add more specific error handling and logging here.  For example, check the error type and log additional details.
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    } else {
+      console.error('Unknown error:', error);
+    }
+    // Re-throw the error to be handled by the calling function.
     throw error;
   }
 };
@@ -60,7 +68,8 @@ export const isWebAppAvailable = async (): Promise<boolean> => {
   try {
     const webApp = await waitForWebApp();
     return !!(webApp?.initDataUnsafe?.user?.id);
-  } catch {
+  } catch (error) {
+    console.error('Error checking WebApp availability:', error);
     return false;
   }
 };
