@@ -14,7 +14,7 @@ import TelegramAppCheck from './components/telegram/TelegramAppCheck';
 import SyncCheck from './components/SyncCheck';
 
 const App: React.FC = () => {
-  const manifestUrl = `${window.location.origin}/tonconnect-manifest.json`;
+  const manifestUrl = `${window.location.href}/tonconnect-manifest.json`;
 
   return (
     <ErrorBoundary>
@@ -29,11 +29,11 @@ const App: React.FC = () => {
                   background: '#3B82F6',
                   foreground: '#FFFFFF'
                 }
-              }
+              } as Record<string, any>
             }}
             actionsConfiguration={{
               twaReturnUrl: window.location.origin,
-              skipRedirectToWallet: false
+              skipRedirectToWallet: undefined
             }}
           >
             <WalletProvider>

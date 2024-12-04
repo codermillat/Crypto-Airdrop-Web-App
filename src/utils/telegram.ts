@@ -2,7 +2,6 @@ import { TelegramUser, TelegramWebApp } from '../types/telegram';
 
 const BOT_TOKEN = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
 const BOT_USERNAME = import.meta.env.VITE_TELEGRAM_BOT_USERNAME;
-const API_URL = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
 export const getTelegramBotUsername = (): string => {
   return BOT_USERNAME;
@@ -92,10 +91,9 @@ export const initializeTelegramWebApp = (): void => {
       return;
     }
 
-    window.Telegram.WebApp.expand();
-    window.Telegram.WebApp.setHeaderColor('#000000');
-    window.Telegram.WebApp.setBackgroundColor('#000000');
-    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.isExpanded = true;
+    window.Telegram.WebApp.headerColor = '#000000';
+    window.Telegram.WebApp.backgroundColor = '#000000';
   } catch (error) {
     console.error('Error initializing Telegram WebApp:', error);
   }
