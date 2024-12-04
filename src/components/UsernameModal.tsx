@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useWalletStore } from '../store/useWalletStore';
 import { Loader2, X, AlertCircle } from 'lucide-react';
 import { registerUser } from '../utils/api';
+import { getTelegramWebAppUser } from '../utils/telegram';
 
 interface Props {
   isOpen: boolean;
@@ -16,21 +17,17 @@ const UsernameModal: React.FC<Props> = ({ isOpen, onClose }) => {
   const { setUsername: setStoreUsername, setIsRegistered, isRegistered } = useWalletStore();
 
   useEffect(() => {
-    // Close modal if user is already registered
     if (isRegistered) {
       onClose();
     }
   }, [isRegistered, onClose]);
 
   useEffect(() => {
-    // Check for Telegram WebApp data
-    if (window.Telegram?.WebApp) {
-      const tgUser = window.Telegram.WebApp.initDataUnsafe?.user;
-      if (tgUser?.id) {
-        setTelegramId(tgUser.id.toString());
-        if (tgUser.username) {
-          setUsername(tgUser.username);
-        }
+    const tgUser = getTelegramWebAppUser();
+    if (tgUser?.id) {
+      setTelegramId(tgUser.id.toString());
+      if (tgUser.username) {
+        setUsername(tgUser.username);
       }
     }
   }, []);
