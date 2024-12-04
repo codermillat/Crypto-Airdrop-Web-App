@@ -36,7 +36,6 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   response => response.data,
   error => {
-    // Log errors in development
     if (import.meta.env.DEV) {
       console.error('API Error:', {
         url: error.config?.url,
@@ -53,8 +52,12 @@ export const registerWallet = async (address: string) => {
   return api.post('/auth/wallet', { address });
 };
 
-export const registerUser = async (username: string, telegramId?: string) => {
-  return api.post('/auth/register', { username, telegramId });
+export const registerUser = async (username: string, telegramId: string) => {
+  return api.post('/auth/register', { 
+    username,
+    telegramId,
+    useTelegramUsername: true // New flag to enforce Telegram username
+  });
 };
 
 export const fetchUser = async () => {

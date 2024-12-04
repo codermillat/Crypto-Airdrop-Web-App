@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
-import { isTelegramWebApp } from '../utils/telegram';
+import { isTelegramWebApp, initializeTelegramWebApp, getTelegramPlatform } from '../utils/telegram';
 
 const TelegramAppCheck: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isValidPlatform, setIsValidPlatform] = useState(false);
@@ -8,12 +8,19 @@ const TelegramAppCheck: React.FC<{ children: React.ReactNode }> = ({ children })
 
   useEffect(() => {
     const checkPlatform = () => {
-      const isTelegramApp = isTelegramWebApp();
-      setIsValidPlatform(isTelegramApp);
+      const isTelegram = isTelegramWebApp();
+      setIsValidPlatform(isTelegram);
+      
+      if (isTelegram) {
+        initializeTelegramWebApp();
+      }
+      
       setIsChecking(false);
     };
 
-    checkPlatform();
+    // Small delay to ensure Telegram WebApp API is available
+    const timeoutId = setTimeout(checkPlatform, 100);
+    return () => clearTimeout(timeoutId);
   }, []);
 
   if (isChecking) {
@@ -33,8 +40,8 @@ const TelegramAppCheck: React.FC<{ children: React.ReactNode }> = ({ children })
         <div className="text-center p-4">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h1 className="text-xl font-bold mb-2">Access Restricted</h1>
-          <p className="text-gray-400">
-            This app is only accessible through the Telegram mobile app.
+          <p className="text-gray-400 mb-4">
+            This app is only accessible through Telegram.
           </p>
           <a 
             href="https://t.me/TonFunZoneBot"

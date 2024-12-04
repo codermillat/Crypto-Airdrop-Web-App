@@ -1,16 +1,25 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
-import { getTelegramUser } from '../utils/telegram.js';
 
 export const registerUser = async (req, res) => {
   try {
-    const { username, telegramId } = req.body;
+    const { username, telegramId, useTelegramUsername } = req.body;
     const { address } = req.user;
 
-    console.log('Register user request:', { username, telegramId, address });
+    console.log('Register user request:', { username, telegramId, address, useTelegramUsername });
 
     if (!address) {
       return res.status(400).json({ error: 'Wallet address required' });
+    }
+
+    if (!telegramId) {
+      return res.status(400).json({ error: 'Telegram ID required' });
+    }
+
+    // Check if telegram ID is already registered
+    const existingTelegramUser = await User.findOne({ telegramId });
+    if (existingTelegramUser) {
+      return res.status(400).json({ error: 'This Telegram account is already registered' });
     }
 
     // Create user if doesn't exist
@@ -25,33 +34,19 @@ export const registerUser = async (req, res) => {
       });
     }
 
-    // Get Telegram username if available
-    let finalUsername = username;
-    if (telegramId) {
-      try {
-        const telegramUser = await getTelegramUser(telegramId);
-        console.log('Telegram user data:', telegramUser);
-        if (telegramUser?.username) {
-          finalUsername = telegramUser.username;
-        }
-      } catch (err) {
-        console.error('Failed to fetch Telegram user:', err);
+    // Enforce Telegram username
+    if (useTelegramUsername) {
+      // Check if username is already taken
+      const existingUser = await User.findOne({ 
+        username,
+        address: { $ne: address }
+      });
+      
+      if (existingUser) {
+        return res.status(400).json({ error: 'This username is already registered' });
       }
-    }
 
-    // Check if username is already taken by another user
-    const existingUser = await User.findOne({ 
-      username: finalUsername,
-      address: { $ne: address } // Exclude current user
-    });
-    
-    if (existingUser) {
-      return res.status(400).json({ error: 'Username already taken' });
-    }
-
-    // Update user
-    user.username = finalUsername;
-    if (telegramId) {
+      user.username = username;
       user.telegramId = telegramId;
     }
 

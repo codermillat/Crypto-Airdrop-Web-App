@@ -9,9 +9,19 @@ const WalletConnectInner = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center space-x-2 text-red-500 p-2">
-        <AlertCircle className="w-5 h-5" />
-        <span className="text-sm">{error.message}</span>
+      <div className="flex flex-col items-center justify-center space-y-2 p-4">
+        <AlertCircle className="w-6 h-6 text-red-500" />
+        <p className="text-sm text-red-500 text-center">{error.message}</p>
+        {error.message.includes('install') && (
+          <a
+            href="https://chrome.google.com/webstore/detail/ton-wallet/nphplpgoakhhjchkkhmiggakijnkhfnd"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:text-blue-600 text-sm underline"
+          >
+            Install TON Wallet
+          </a>
+        )}
       </div>
     );
   }

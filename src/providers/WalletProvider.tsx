@@ -66,13 +66,30 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
 
   useEffect(() => {
     let mounted = true;
+    let initTimeout: NodeJS.Timeout;
 
     const initializeWallet = async () => {
       try {
-        if (!tonConnectUI) return;
+        if (!tonConnectUI) {
+          throw new Error('TON Connect UI not available');
+        }
         
         setError(null);
-        await tonConnectUI.connectionRestored;
+
+        // Add timeout to prevent infinite waiting
+        const timeoutPromise = new Promise((_, reject) => {
+          initTimeout = setTimeout(() => {
+            reject(new Error('Wallet initialization timed out'));
+          }, 10000);
+        });
+
+        // Race between connection restoration and timeout
+        await Promise.race([
+          tonConnectUI.connectionRestored,
+          timeoutPromise
+        ]);
+        
+        clearTimeout(initTimeout);
         
         if (mounted) {
           setIsInitialized(true);
@@ -81,6 +98,8 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
         if (mounted) {
           console.error('Wallet initialization error:', err);
           setError(err instanceof Error ? err : new Error('Failed to initialize wallet'));
+          // Still set initialized to true to prevent hanging
+          setIsInitialized(true);
         }
       }
     };
@@ -89,12 +108,13 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
 
     return () => {
       mounted = false;
+      clearTimeout(initTimeout);
     };
   }, [tonConnectUI]);
 
   useEffect(() => {
     const handleAddressChange = async () => {
-      if (!isInitialized || !tonConnectUI?.connector) return;
+      if (!isInitialized) return;
 
       if (userAddress) {
         try {
@@ -115,11 +135,15 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
     };
 
     handleAddressChange();
-  }, [isInitialized, userAddress, tonConnectUI, setAddress, resetWalletState]);
+  }, [isInitialized, userAddress, setAddress, resetWalletState]);
 
   const connect = useCallback(async () => {
-    if (!tonConnectUI?.connector || !isInitialized) {
-      throw new Error('Wallet not initialized');
+    if (!tonConnectUI) {
+      throw new Error('TON Connect UI not available. Please install TON Wallet.');
+    }
+    
+    if (!isInitialized) {
+      throw new Error('Wallet not initialized. Please refresh the page.');
     }
     
     try {
@@ -134,7 +158,11 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
   }, [tonConnectUI, isInitialized]);
 
   const disconnect = useCallback(async () => {
-    if (!tonConnectUI?.connector || !isInitialized) {
+    if (!tonConnectUI) {
+      throw new Error('TON Connect UI not available');
+    }
+    
+    if (!isInitialized) {
       throw new Error('Wallet not initialized');
     }
     
@@ -151,8 +179,14 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
     }
   }, [tonConnectUI, isInitialized, resetWalletState]);
 
+  // Provide a more detailed connection status
+  const isConnected = isInitialized && 
+    !!tonConnectUI?.connector?.connected && 
+    !!userAddress && 
+    !error;
+
   const value = {
-    isConnected: isInitialized && !!tonConnectUI?.connector?.connected && !!userAddress,
+    isConnected,
     address: userAddress || null,
     isInitialized,
     error,
