@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
-import { setupWebApp, getWebAppData } from '../../utils/telegram';
 import LoadingState from '../common/LoadingState';
-import ErrorState from '../common/ErrorState';
+import { TelegramWebApp } from '../../types/telegram';
 
 interface Props {
   children: React.ReactNode;
@@ -17,15 +16,21 @@ const TelegramAppCheck: React.FC<Props> = ({ children }) => {
     const initializeTelegram = async () => {
       try {
         // Check if we're in Telegram WebApp
-        const webAppData = getWebAppData();
-        if (!webAppData) {
+        const webApp = window.Telegram?.WebApp;
+        if (!webApp) {
           setError('This app must be opened in Telegram');
           setIsValidPlatform(false);
           return;
         }
 
-        // Initialize WebApp
-        setupWebApp();
+        // Initialize WebApp - only set colors if properties exist
+        if (webApp.headerColor) {
+          webApp.headerColor = '#000000';
+        }
+        if (webApp.backgroundColor) {
+          webApp.backgroundColor = '#000000';
+        }
+
         setIsValidPlatform(true);
         setError(null);
       } catch (err: any) {

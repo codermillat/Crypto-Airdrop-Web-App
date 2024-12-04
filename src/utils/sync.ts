@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { getWebAppData } from './telegram';
 
 interface SyncStatus {
   api: boolean;
@@ -33,8 +32,7 @@ export const checkDatabaseConnection = async (): Promise<boolean> => {
 
 export const checkTelegramConnection = (): boolean => {
   try {
-    const webAppData = getWebAppData();
-    return !!webAppData && !!webAppData.user;
+    return !!window.Telegram?.WebApp;
   } catch (error) {
     console.error('Telegram connection check failed:', error);
     return false;
