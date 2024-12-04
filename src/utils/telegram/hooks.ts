@@ -1,21 +1,39 @@
 import { useState, useEffect } from 'react';
-import { getWebAppData } from './webapp';
-import { TelegramSecurityError } from './security';
+import { TelegramUser, TelegramWebApp } from '../../types/telegram';
+import { ValidationError } from './validation';
+import { getWebApp } from './webapp';
+import { validateWebAppUser } from './validation';
+
+interface WebAppTheme {
+  colorScheme: 'light' | 'dark';
+  themeParams: Record<string, string>;
+}
+
+interface WebAppViewport {
+  height: number;
+  stableHeight: number;
+  isExpanded: boolean;
+}
 
 export const useWebAppUser = () => {
-  const [user, setUser] = useState(window.Telegram?.WebApp?.initDataUnsafe?.user || null);
-  const [error, setError] = useState<TelegramSecurityError | null>(null);
+  const [user, setUser] = useState<TelegramUser | null>(null);
+  const [error, setError] = useState<ValidationError | null>(null);
 
   useEffect(() => {
     try {
-      const webAppData = getWebAppData();
-      setUser(webAppData?.user || null);
+      const webApp = getWebApp();
+      const userData = webApp?.initDataUnsafe?.user;
+
+      if (!validateWebAppUser(userData)) {
+        throw new ValidationError('Invalid or missing user data');
+      }
+
+      setUser(userData);
       setError(null);
     } catch (err) {
-      if (err instanceof TelegramSecurityError) {
-        setError(err);
-      }
+      console.error('Error getting WebApp user:', err);
       setUser(null);
+      setError(err instanceof ValidationError ? err : new ValidationError('Failed to get user data'));
     }
   }, []);
 
@@ -23,42 +41,58 @@ export const useWebAppUser = () => {
 };
 
 export const useWebAppTheme = () => {
-  const [theme, setTheme] = useState({
-    colorScheme: window.Telegram?.WebApp?.colorScheme || 'dark',
-    themeParams: window.Telegram?.WebApp?.themeParams || {}
+  const [theme, setTheme] = useState<WebAppTheme>({
+    colorScheme: 'dark',
+    themeParams: {}
   });
 
   useEffect(() => {
-    const handleThemeChange = () => {
+    const webApp = getWebApp();
+    if (!webApp) return;
+
+    const updateTheme = () => {
       setTheme({
-        colorScheme: window.Telegram?.WebApp?.colorScheme || 'dark',
-        themeParams: window.Telegram?.WebApp?.themeParams || {}
+        colorScheme: webApp.colorScheme || 'dark',
+        themeParams: webApp.themeParams || {}
       });
     };
-    (window.Telegram?.WebApp as any)?.onEvent?.('themeChanged', handleThemeChange);
-    return () => (window.Telegram?.WebApp as any)?.offEvent?.('themeChanged', handleThemeChange);
+
+    updateTheme();
+    webApp.onEvent('themeChanged', updateTheme);
+
+    return () => {
+      webApp.offEvent('themeChanged', updateTheme);
+    };
   }, []);
 
   return theme;
 };
 
 export const useWebAppViewport = () => {
-  const [viewport, setViewport] = useState({
-    height: window.Telegram?.WebApp?.viewportHeight || 0,
-    stableHeight: window.Telegram?.WebApp?.viewportStableHeight || 0,
-    isExpanded: window.Telegram?.WebApp?.isExpanded || false
+  const [viewport, setViewport] = useState<WebAppViewport>({
+    height: window.innerHeight,
+    stableHeight: window.innerHeight,
+    isExpanded: false
   });
 
   useEffect(() => {
-    const handleViewportChange = () => {
+    const webApp = getWebApp();
+    if (!webApp) return;
+
+    const updateViewport = () => {
       setViewport({
-        height: window.Telegram?.WebApp?.viewportHeight || 0,
-        stableHeight: window.Telegram?.WebApp?.viewportStableHeight || 0,
-        isExpanded: window.Telegram?.WebApp?.isExpanded || false
+        height: webApp.viewportHeight || window.innerHeight,
+        stableHeight: webApp.viewportStableHeight || window.innerHeight,
+        isExpanded: webApp.isExpanded || false
       });
     };
-    (window.Telegram?.WebApp as any)?.onEvent?.('viewportChanged', handleViewportChange);
-    return () => (window.Telegram?.WebApp as any)?.offEvent?.('viewportChanged', handleViewportChange);
+
+    updateViewport();
+    webApp.onEvent('viewportChanged', updateViewport);
+
+    return () => {
+      webApp.offEvent('viewportChanged', updateViewport);
+    };
   }, []);
 
   return viewport;
@@ -69,30 +103,42 @@ export const useMainButton = (text: string, onClick: () => void) => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const button = window.Telegram?.WebApp?.MainButton as any;
-    button?.setText?.(text);
-    button?.onClick?.(onClick);
-    return () => button?.offClick?.(onClick);
+    const webApp = getWebApp();
+    if (!webApp?.MainButton) return;
+
+    const button = webApp.MainButton;
+    button.setText(text);
+    button.onClick(onClick);
+    
+    return () => {
+      button.offClick(onClick);
+    };
   }, [text, onClick]);
 
   const show = () => {
-    const button = window.Telegram?.WebApp?.MainButton as any;
-    button?.show?.();
+    const webApp = getWebApp();
+    if (!webApp?.MainButton) return;
+
+    webApp.MainButton.show();
     setIsVisible(true);
   };
 
   const hide = () => {
-    const button = window.Telegram?.WebApp?.MainButton as any;
-    button?.hide?.();
+    const webApp = getWebApp();
+    if (!webApp?.MainButton) return;
+
+    webApp.MainButton.hide();
     setIsVisible(false);
   };
 
   const setLoading = (loading: boolean) => {
-    const button = window.Telegram?.WebApp?.MainButton as any;
+    const webApp = getWebApp();
+    if (!webApp?.MainButton) return;
+
     if (loading) {
-      button?.showProgress?.();
+      webApp.MainButton.showProgress();
     } else {
-      button?.hideProgress?.();
+      webApp.MainButton.hideProgress();
     }
     setIsLoading(loading);
   };
@@ -103,5 +149,49 @@ export const useMainButton = (text: string, onClick: () => void) => {
     show,
     hide,
     setLoading
+  };
+};
+
+export const useBackButton = () => {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const webApp = getWebApp();
+    if (!webApp?.BackButton) return;
+
+    return () => {
+      webApp.BackButton.hide();
+    };
+  }, []);
+
+  const show = () => {
+    const webApp = getWebApp();
+    if (!webApp?.BackButton) return;
+
+    webApp.BackButton.show();
+    setIsVisible(true);
+  };
+
+  const hide = () => {
+    const webApp = getWebApp();
+    if (!webApp?.BackButton) return;
+
+    webApp.BackButton.hide();
+    setIsVisible(false);
+  };
+
+  const onClick = (callback: () => void) => {
+    const webApp = getWebApp();
+    if (!webApp?.BackButton) return;
+
+    webApp.BackButton.onClick(callback);
+    return () => webApp.BackButton.offClick(callback);
+  };
+
+  return {
+    isVisible,
+    show,
+    hide,
+    onClick
   };
 };
