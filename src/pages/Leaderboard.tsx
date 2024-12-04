@@ -14,7 +14,7 @@ const Leaderboard = () => {
     const loadStats = async () => {
       try {
         const data = await fetchLeaderboard();
-        setTotalUsers(data.length);
+        setTotalUsers(data.data.length);
         setError(null);
       } catch (err: any) {
         setError(err?.message || 'Failed to load stats');

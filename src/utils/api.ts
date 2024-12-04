@@ -1,6 +1,18 @@
 import axios from 'axios';
 import { handleApiError } from './error';
 
+interface WalletData {
+  address: string | null;
+  // Add other properties as needed based on the API response
+}
+
+interface UserData {
+  points: number | null;
+  username: string | null;
+  referralCode: string | null;
+  // Add other properties as needed based on the API response
+}
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
   headers: {
@@ -16,7 +28,7 @@ api.interceptors.request.use((config) => {
   if (address) {
     config.headers['x-wallet-address'] = address;
   }
-  
+
   // Log request in development
   if (import.meta.env.DEV) {
     console.log('API Request:', {
@@ -26,7 +38,7 @@ api.interceptors.request.use((config) => {
       data: config.data
     });
   }
-  
+
   return config;
 }, (error) => {
   return Promise.reject(handleApiError(error));
@@ -48,19 +60,19 @@ api.interceptors.response.use(
 );
 
 // API functions
-export const registerWallet = async (address: string) => {
+export const registerWallet = async (address: string): Promise<WalletData> => {
   return api.post('/auth/wallet', { address });
 };
 
 export const registerUser = async (username: string, telegramId: string) => {
-  return api.post('/auth/register', { 
+  return api.post('/auth/register', {
     username,
     telegramId,
     useTelegramUsername: true // New flag to enforce Telegram username
   });
 };
 
-export const fetchUser = async () => {
+export const fetchUser = async (): Promise<UserData> => {
   return api.get('/user');
 };
 

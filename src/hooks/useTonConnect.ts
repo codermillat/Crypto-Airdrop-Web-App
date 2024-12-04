@@ -3,6 +3,19 @@ import { useWalletStore } from '../store/useWalletStore';
 import { fetchUser, registerWallet } from '../utils/api';
 import { useWallet } from '../providers/WalletProvider';
 
+interface WalletData {
+  address: string | null;
+  // Add other properties as needed based on the API response
+}
+
+interface UserData {
+  points: number | null;
+  username: string | null;
+  referralCode: string | null;
+  // Add other properties as needed based on the API response
+}
+
+
 export const useTonConnect = () => {
   const { isConnected, address, isInitialized, connect, disconnect } = useWallet();
   const { setAddress, setPoints, setUsername, setIsRegistered, setReferralCode } = useWalletStore();
@@ -14,13 +27,13 @@ export const useTonConnect = () => {
 
     try {
       setAddress(address);
-      const walletData = await registerWallet(address);
-      
+      const walletData: WalletData = await registerWallet(address);
+
       if (!walletData || !walletData.address) {
         throw new Error('Invalid wallet data received');
       }
 
-      const userData = await fetchUser();
+      const userData: UserData = await fetchUser();
       if (!userData) {
         throw new Error('Failed to fetch user data');
       }

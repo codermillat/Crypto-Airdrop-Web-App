@@ -13,7 +13,7 @@ interface TaskForm {
   reward: number;
   type: 'onboarding' | 'social' | 'defi' | 'daily';
   requirements: string[];
-  active: boolean;
+  isActive: boolean;
 }
 
 const initialForm: TaskForm = {
@@ -21,7 +21,7 @@ const initialForm: TaskForm = {
   reward: 100,
   type: 'onboarding',
   requirements: [''],
-  active: true
+  isActive: true
 };
 
 const TasksManager: React.FC<Props> = ({ tasks, onUpdate }) => {
@@ -78,7 +78,7 @@ const TasksManager: React.FC<Props> = ({ tasks, onUpdate }) => {
       reward: task.reward,
       type: task.type as TaskForm['type'],
       requirements: task.requirements,
-      active: task.active
+      isActive: task.isActive
     });
     setEditingTask(task._id);
     setShowForm(true);
@@ -191,8 +191,8 @@ const TasksManager: React.FC<Props> = ({ tasks, onUpdate }) => {
           <div className="flex items-center space-x-2">
             <input
               type="checkbox"
-              checked={form.active}
-              onChange={e => setForm({ ...form, active: e.target.checked })}
+              checked={form.isActive}
+              onChange={e => setForm({ ...form, isActive: e.target.checked })}
               className="rounded border-gray-700"
             />
             <label className="text-sm">Active</label>
@@ -252,7 +252,7 @@ const TasksManager: React.FC<Props> = ({ tasks, onUpdate }) => {
             </div>
             <div className="text-sm text-gray-400">
               <p>Type: {task.type}</p>
-              <p>Status: {task.active ? 'Active' : 'Inactive'}</p>
+              <p>Status: {task.isActive ? 'Active' : 'Inactive'}</p>
               <div className="mt-2">
                 <p className="font-medium">Requirements:</p>
                 <ul className="list-disc list-inside">

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { TelegramUser, TelegramMessage } from './types';
+import { TelegramMessage } from './types';
 import { handleApiError } from '../error';
 
 const BOT_TOKEN = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;

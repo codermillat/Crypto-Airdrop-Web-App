@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import { WebAppInitData } from './types';
 import { getWebAppData } from './webapp';
 import { TelegramSecurityError } from './security';
 
@@ -39,10 +38,11 @@ export const useWebAppTheme = () => {
       });
     };
 
-    window.Telegram?.WebApp?.onEvent('themeChanged', handleThemeChange);
-    return () => {
-      window.Telegram?.WebApp?.offEvent('themeChanged', handleThemeChange);
-    };
+    const webApp = window.Telegram?.WebApp;
+    if (webApp && webApp.onEvent) {
+      webApp.onEvent('themeChanged', handleThemeChange);
+      return () => webApp.offEvent('themeChanged', handleThemeChange);
+    }
   }, []);
 
   return theme;
@@ -64,10 +64,11 @@ export const useWebAppViewport = () => {
       });
     };
 
-    window.Telegram?.WebApp?.onEvent('viewportChanged', handleViewportChange);
-    return () => {
-      window.Telegram?.WebApp?.offEvent('viewportChanged', handleViewportChange);
-    };
+    const webApp = window.Telegram?.WebApp;
+    if (webApp && webApp.onEvent) {
+      webApp.onEvent('viewportChanged', handleViewportChange);
+      return () => webApp.offEvent('viewportChanged', handleViewportChange);
+    }
   }, []);
 
   return viewport;
@@ -80,7 +81,7 @@ export const useMainButton = (text: string, onClick: () => void) => {
 
   const show = useCallback(() => {
     const button = window.Telegram?.WebApp?.MainButton;
-    if (button) {
+    if (button && button.show) {
       button.show();
       setIsVisible(true);
     }
@@ -88,7 +89,7 @@ export const useMainButton = (text: string, onClick: () => void) => {
 
   const hide = useCallback(() => {
     const button = window.Telegram?.WebApp?.MainButton;
-    if (button) {
+    if (button && button.hide) {
       button.hide();
       setIsVisible(false);
     }
@@ -97,9 +98,9 @@ export const useMainButton = (text: string, onClick: () => void) => {
   const setLoading = useCallback((loading: boolean) => {
     const button = window.Telegram?.WebApp?.MainButton;
     if (button) {
-      if (loading) {
+      if (loading && button.showProgress) {
         button.showProgress();
-      } else {
+      } else if (!loading && button.hideProgress) {
         button.hideProgress();
       }
       setIsLoading(loading);
@@ -108,13 +109,10 @@ export const useMainButton = (text: string, onClick: () => void) => {
 
   useEffect(() => {
     const button = window.Telegram?.WebApp?.MainButton;
-    if (button) {
+    if (button && button.setText && button.onClick && button.offClick) {
       button.setText(text);
       button.onClick(onClick);
-      
-      return () => {
-        button.offClick(onClick);
-      };
+      return () => button.offClick(onClick);
     }
   }, [text, onClick]);
 

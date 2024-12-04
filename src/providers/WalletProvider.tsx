@@ -27,6 +27,13 @@ interface Props {
   children: ReactNode;
 }
 
+interface WalletData {
+  address: string | null;
+  points?: number;
+  username?: string;
+  referralCode?: string;
+}
+
 const WalletProvider: React.FC<Props> = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -41,26 +48,30 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
     resetWalletState 
   } = useWalletStore();
 
-  const registerOrFetchWallet = async (address: string, retryCount = 3): Promise<any> => {
+  const registerOrFetchWallet = async (address: string | null, retryCount = 3): Promise<WalletData | null> => {
+    if (!address) {
+      return null;
+    }
     try {
-      const userData = await registerWallet(address);
-      
+      const userData: WalletData = await registerWallet(address); // Explicit type annotation here
+
       if (!userData || !userData.address) {
         throw new Error('Invalid wallet data received');
       }
 
       setPoints(userData.points || 0);
-      setUsername(userData.username);
+      setUsername(userData.username || "");
       setIsRegistered(!!userData.username);
-      setReferralCode(userData.referralCode);
+      setReferralCode(userData.referralCode || "");
       
       return userData;
-    } catch (err) {
+    } catch (err: any) {
       if (retryCount > 0) {
         await new Promise(resolve => setTimeout(resolve, 1000));
         return registerOrFetchWallet(address, retryCount - 1);
       }
-      throw err;
+      console.error("Error in registerOrFetchWallet:", err);
+      throw new Error(`Failed to register or fetch wallet: ${err.message}`);
     }
   };
 
@@ -94,7 +105,7 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
         if (mounted) {
           setIsInitialized(true);
         }
-      } catch (err) {
+      } catch (err: any) {
         if (mounted) {
           console.error('Wallet initialization error:', err);
           setError(err instanceof Error ? err : new Error('Failed to initialize wallet'));
@@ -122,9 +133,9 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
           localStorage.setItem('wallet_address', userAddress);
           await registerOrFetchWallet(userAddress);
           setError(null);
-        } catch (error) {
+        } catch (error: any) {
           console.error('Failed to handle address change:', error);
-          setError(new Error('Failed to connect wallet. Please try again.'));
+          setError(new Error(`Failed to connect wallet: ${error.message}`));
           resetWalletState();
           localStorage.removeItem('wallet_address');
         }
@@ -149,7 +160,7 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
     try {
       setError(null);
       await tonConnectUI.connectWallet();
-    } catch (err) {
+    } catch (err: any) {
       const error = err instanceof Error ? err : new Error('Failed to connect wallet');
       console.error('Wallet connection error:', error);
       setError(error);
@@ -171,7 +182,7 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
       await tonConnectUI.disconnect();
       resetWalletState();
       localStorage.removeItem('wallet_address');
-    } catch (err) {
+    } catch (err: any) {
       const error = err instanceof Error ? err : new Error('Failed to disconnect wallet');
       console.error('Wallet disconnection error:', error);
       setError(error);

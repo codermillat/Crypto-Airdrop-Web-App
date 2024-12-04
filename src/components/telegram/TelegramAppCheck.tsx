@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import LoadingState from '../common/LoadingState';
-import { TelegramWebApp } from '../../types/telegram';
 
 interface Props {
   children: React.ReactNode;

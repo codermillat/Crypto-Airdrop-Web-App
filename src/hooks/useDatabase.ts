@@ -35,6 +35,7 @@ export interface DatabaseUser {
   completedTasks: string[];
   lastLogin?: string;
   createdAt: string;
+  isRegistered: boolean;
 }
 
 export interface DatabaseData {
@@ -56,7 +57,7 @@ export const useDatabase = () => {
       try {
         setLoading(true);
         const result = await fetchAllData();
-        setData(result);
+        setData(result.data); // Extract data from AxiosResponse
         setError(null);
       } catch (err: any) {
         setError(err?.message || 'Failed to fetch database data');
@@ -73,7 +74,7 @@ export const useDatabase = () => {
     setLoading(true);
     try {
       const result = await fetchAllData();
-      setData(result);
+      setData(result.data); // Extract data from AxiosResponse
       setError(null);
     } catch (err: any) {
       setError(err?.message || 'Failed to refresh database data');
