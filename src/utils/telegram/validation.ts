@@ -1,4 +1,4 @@
-import { TelegramUser, WebAppInitData } from './types';
+import { TelegramUser, WebAppInitData } from '../../types/telegram';
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -11,6 +11,13 @@ export const validateWebAppUser = (user: TelegramUser | undefined): boolean => {
   if (!user?.id || !user?.first_name) {
     return false;
   }
+
+  // Validate ID is within safe bounds (52 bits)
+  const MAX_SAFE_ID = Math.pow(2, 52) - 1;
+  if (user.id < 0 || user.id > MAX_SAFE_ID) {
+    return false;
+  }
+
   return true;
 };
 

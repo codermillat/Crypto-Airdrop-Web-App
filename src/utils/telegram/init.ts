@@ -46,7 +46,7 @@ export const initializeWebApp = async (): Promise<void> => {
 
     // Configure WebApp
     webApp.expand();
-    webApp.enableClosingConfirmation();
+    webApp.enableClosingConfirmation?.();
 
     // Set theme colors
     webApp.setHeaderColor?.('#000000');

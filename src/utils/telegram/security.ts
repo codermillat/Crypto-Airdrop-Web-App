@@ -1,5 +1,5 @@
 import CryptoJS from 'crypto-js';
-import { WebAppInitData } from './types';
+import { WebAppInitData } from '../../types/telegram';
 
 const BOT_TOKEN = import.meta.env.VITE_TELEGRAM_BOT_TOKEN;
 

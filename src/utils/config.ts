@@ -1,21 +1,33 @@
-import { isValidUrl } from './validation';
+export const getTelegramConfig = () => {
+  const config = {
+    botToken: import.meta.env.VITE_TELEGRAM_BOT_TOKEN,
+    botUsername: import.meta.env.VITE_TELEGRAM_BOT_USERNAME,
+    apiUrl: import.meta.env.VITE_API_URL,
+    appUrl: import.meta.env.VITE_APP_URL,
+    isDebug: import.meta.env.VITE_DEBUG_MODE === 'true'
+  };
 
-export const getManifestUrl = (): `${string}://${string}` => {
-  const baseUrl = window.location.origin;
-  const manifestPath = '/tonconnect-manifest.json';
-  const fullUrl = `${baseUrl}${manifestPath}`;
-
-  if (!isValidUrl(fullUrl)) {
-    throw new Error('Invalid manifest URL');
+  // Validate required configuration
+  if (!config.botToken) {
+    throw new Error('VITE_TELEGRAM_BOT_TOKEN is required');
   }
 
-  return fullUrl as `${string}://${string}`;
+  if (!config.botUsername) {
+    throw new Error('VITE_TELEGRAM_BOT_USERNAME is required');
+  }
+
+  return config;
 };
 
-export const getTelegramBotUsername = (): string => {
-  return import.meta.env.VITE_TELEGRAM_BOT_USERNAME || '';
+export const getManifestUrl = (): string => {
+  const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
+  return `${baseUrl}/tonconnect-manifest.json`;
 };
 
-export const getApiUrl = (): string => {
-  return import.meta.env.VITE_API_URL || '/api';
+export const isProduction = (): boolean => {
+  return import.meta.env.PROD;
+};
+
+export const isDevelopment = (): boolean => {
+  return import.meta.env.DEV;
 };
