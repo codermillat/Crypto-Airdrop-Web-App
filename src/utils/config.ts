@@ -31,3 +31,8 @@ export const isProduction = (): boolean => {
 export const isDevelopment = (): boolean => {
   return import.meta.env.DEV;
 };
+
+export const getTelegramBotUsername = (): string => {
+  const { botUsername } = getTelegramConfig();
+  return botUsername;
+};
