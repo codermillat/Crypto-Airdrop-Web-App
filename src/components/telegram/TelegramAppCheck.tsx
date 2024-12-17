@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { isTelegramEnvironment } from '../../utils/telegram/environment';
-import { waitForWebApp, configureWebApp, WebAppError } from '../../utils/telegram/webApp';
+import { 
+  waitForWebApp, 
+  initializeWebApp, 
+  WebAppError 
+} from '../../utils/telegram/webapp';
 import LoadingState from '../common/LoadingState';
 import ErrorState from '../common/ErrorState';
 
@@ -23,9 +27,8 @@ const TelegramAppCheck: React.FC<Props> = ({ children }) => {
           return;
         }
 
-        // Wait for and configure WebApp
-        const webApp = await waitForWebApp();
-        configureWebApp(webApp);
+        // Initialize WebApp
+        await initializeWebApp();
         
         setIsReady(true);
         setError(null);
