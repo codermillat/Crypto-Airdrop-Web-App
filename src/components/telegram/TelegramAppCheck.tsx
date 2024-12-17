@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { isTelegramEnvironment } from '../../utils/telegram/environment';
-import { 
-  waitForWebApp, 
-  initializeWebApp
-} from '../../utils/telegram/webapp';
+import { initializeWebApp } from '../../utils/telegram/webapp';
 import { WebAppError } from '../../utils/telegram/webapp/errors';
 import LoadingState from '../common/LoadingState';
 import ErrorState from '../common/ErrorState';
@@ -27,11 +24,22 @@ const TelegramAppCheck: React.FC<Props> = ({ children }) => {
           return;
         }
 
-        // Initialize WebApp
-        await initializeWebApp();
-        
-        setIsReady(true);
-        setError(null);
+        // Initialize WebApp with retries
+        let retries = 3;
+        while (retries > 0) {
+          try {
+            await initializeWebApp();
+            setIsReady(true);
+            setError(null);
+            break;
+          } catch (err) {
+            retries--;
+            if (retries === 0) {
+              throw err;
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+        }
       } catch (err) {
         console.error('Telegram initialization error:', err);
         setError(
@@ -55,7 +63,7 @@ const TelegramAppCheck: React.FC<Props> = ({ children }) => {
     return (
       <ErrorState 
         message={error || 'Please open the app in Telegram'} 
-        actionUrl="https://t.me/your_bot"
+        actionUrl="https://t.me/TONFunZoneBot"
         actionText="Open in Telegram"
       />
     );
