@@ -1,26 +1,42 @@
-import { getWebApp, waitForWebApp } from './core';
+import { debugLog } from '../debug';
 import { WebAppError } from './errors';
-import { isTelegramEnvironment } from '../environment/detection';
-import { debugTelegramEnvironment } from '../debug';
-import { configureWebApp } from './config';
-
-const INIT_TIMEOUT = 5000;
+import { validateTelegramEnvironment } from '../environment/detection';
 
 export const initializeWebApp = async (): Promise<void> => {
   try {
-    debugTelegramEnvironment();
-
-    if (!isTelegramEnvironment()) {
-      throw new WebAppError('Please open the app in Telegram');
+    const webApp = window.Telegram?.WebApp;
+    if (!webApp) {
+      throw new WebAppError('Telegram WebApp not available');
     }
 
-    const webApp = await waitForWebApp(INIT_TIMEOUT);
-    const configured = configureWebApp(webApp);
-
-    if (!configured) {
-      debugLog('WebApp configuration incomplete');
+    // Validate environment
+    const validationError = validateTelegramEnvironment();
+    if (validationError) {
+      throw new WebAppError(validationError);
     }
 
+    // Configure WebApp
+    webApp.expand();
+    
+    if (webApp.enableClosingConfirmation) {
+      webApp.enableClosingConfirmation();
+    }
+
+    if (webApp.setHeaderColor) {
+      webApp.setHeaderColor('#000000');
+    }
+
+    if (webApp.setBackgroundColor) {
+      webApp.setBackgroundColor('#000000');
+    }
+
+    if (webApp.HapticFeedback) {
+      webApp.HapticFeedback.notificationOccurred('success');
+    }
+
+    // Mark as ready
+    webApp.ready();
+    
     debugLog('WebApp initialized successfully');
   } catch (error) {
     debugLog('WebApp initialization failed:', error);

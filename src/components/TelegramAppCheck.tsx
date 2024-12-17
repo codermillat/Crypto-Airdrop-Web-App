@@ -1,29 +1,51 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
-import { isTelegramEnvironment, debugTelegramEnvironment } from '../utils/telegram/environment';
-import { initializeTelegramWebApp } from '../utils/telegram';
+import { isTelegramEnvironment, validateTelegramEnvironment } from '../utils/telegram/environment/detection';
+import { debugTelegramEnvironment } from '../utils/telegram/debug';
+import { initializeWebApp } from '../utils/telegram/webapp/initialization';
 
 const TelegramAppCheck: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isValidPlatform, setIsValidPlatform] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkPlatform = () => {
-      // Debug environment information
-      debugTelegramEnvironment();
-      
-      const isTelegram = isTelegramEnvironment();
-      setIsValidPlatform(isTelegram);
-      
-      if (isTelegram) {
-        initializeTelegramWebApp();
+    const checkPlatform = async () => {
+      try {
+        // Debug environment information
+        debugTelegramEnvironment();
+        
+        // First check if we're in Telegram environment
+        if (!isTelegramEnvironment()) {
+          setError('Please open this app in Telegram');
+          setIsValidPlatform(false);
+          return;
+        }
+
+        // Then validate the specific environment requirements
+        const validationError = validateTelegramEnvironment();
+        if (validationError) {
+          setError(validationError);
+          setIsValidPlatform(false);
+          return;
+        }
+
+        // Initialize WebApp
+        await initializeWebApp();
+        
+        setIsValidPlatform(true);
+        setError(null);
+      } catch (err) {
+        console.error('Platform check error:', err);
+        setError('Failed to initialize Telegram app');
+        setIsValidPlatform(false);
+      } finally {
+        setIsChecking(false);
       }
-      
-      setIsChecking(false);
     };
 
-    // Small delay to ensure Telegram WebApp API is available
-    const timeoutId = setTimeout(checkPlatform, 500);
+    // Increased delay to ensure Telegram WebApp API is fully loaded
+    const timeoutId = setTimeout(checkPlatform, 1000);
     return () => clearTimeout(timeoutId);
   }, []);
 
@@ -32,20 +54,20 @@ const TelegramAppCheck: React.FC<{ children: React.ReactNode }> = ({ children })
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center p-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p>Initializing...</p>
+          <p>Initializing Telegram app...</p>
         </div>
       </div>
     );
   }
 
-  if (!isValidPlatform) {
+  if (!isValidPlatform || error) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center p-4">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h1 className="text-xl font-bold mb-2">Access Restricted</h1>
           <p className="text-gray-400 mb-4">
-            This app is only accessible through Telegram.
+            {error || 'Please open this app in Telegram'}
           </p>
           <a 
             href="https://t.me/TonFunZoneBot"
