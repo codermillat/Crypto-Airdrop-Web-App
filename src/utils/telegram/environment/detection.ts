@@ -2,49 +2,81 @@ import { debugLog } from '../debug';
 
 // Platform-specific checks
 const isTelegramMobileApp = (): boolean => {
-  const platform = window.Telegram?.WebApp?.platform;
-  return platform === 'android' || platform === 'ios';
+  try {
+    const webApp = window.Telegram?.WebApp;
+    if (!webApp) return false;
+
+    // Check platform directly from WebApp
+    const platform = webApp.platform.toLowerCase();
+    const isMobile = platform === 'android' || platform === 'ios';
+    
+    debugLog('Platform check:', { platform, isMobile });
+    return isMobile;
+  } catch (error) {
+    debugLog('Error checking mobile platform:', error);
+    return false;
+  }
 };
 
 const isTelegramWebView = (): boolean => {
-  const userAgent = navigator.userAgent.toLowerCase();
-  return userAgent.includes('telegram') || userAgent.includes('tgweb');
+  try {
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isWebView = userAgent.includes('telegram') || 
+                     userAgent.includes('tgweb') ||
+                     userAgent.includes('webview');
+    
+    debugLog('WebView check:', { userAgent, isWebView });
+    return isWebView;
+  } catch (error) {
+    debugLog('Error checking WebView:', error);
+    return false;
+  }
 };
 
 const hasTelegramWebAppData = (): boolean => {
-  const searchParams = new URLSearchParams(window.location.search);
-  return searchParams.has('tgWebAppData') || 
-         searchParams.has('tgWebAppStartParam') ||
-         searchParams.has('tgWebAppPlatform');
-};
+  try {
+    const webApp = window.Telegram?.WebApp;
+    if (webApp?.initData) {
+      debugLog('Found WebApp init data');
+      return true;
+    }
 
-const hasTelegramWebAppAPI = (): boolean => {
-  return !!window.Telegram?.WebApp?.initData;
+    const searchParams = new URLSearchParams(window.location.search);
+    const hasData = searchParams.has('tgWebAppData') || 
+                   searchParams.has('tgWebAppStartParam') ||
+                   searchParams.has('tgWebAppPlatform');
+    
+    debugLog('URL params check:', { hasData, params: window.location.search });
+    return hasData;
+  } catch (error) {
+    debugLog('Error checking WebApp data:', error);
+    return false;
+  }
 };
 
 export const isTelegramEnvironment = (): boolean => {
   try {
-    // Check if we're in the mobile app first
+    // First check if WebApp is available
+    if (window.Telegram?.WebApp) {
+      debugLog('WebApp is available');
+      return true;
+    }
+
+    // Then check if we're in mobile app
     if (isTelegramMobileApp()) {
-      debugLog('Detected Telegram mobile app');
+      debugLog('In Telegram mobile app');
       return true;
     }
 
-    // Then check for WebView
+    // Check for WebView
     if (isTelegramWebView()) {
-      debugLog('Detected Telegram WebView');
+      debugLog('In Telegram WebView');
       return true;
     }
 
-    // Check for WebApp data in URL
+    // Finally check for WebApp data
     if (hasTelegramWebAppData()) {
-      debugLog('Detected Telegram WebApp data in URL');
-      return true;
-    }
-
-    // Finally check for WebApp API
-    if (hasTelegramWebAppAPI()) {
-      debugLog('Detected Telegram WebApp API');
+      debugLog('Has WebApp data');
       return true;
     }
 
@@ -52,23 +84,34 @@ export const isTelegramEnvironment = (): boolean => {
     return false;
   } catch (error) {
     debugLog('Error checking Telegram environment:', error);
-    return false; // Changed to false to be more strict
+    return false;
   }
 };
 
 export const validateTelegramEnvironment = (): string | null => {
-  if (!window.Telegram?.WebApp) {
-    return 'Telegram WebApp API not available';
-  }
+  try {
+    // Check if WebApp is available
+    if (!window.Telegram?.WebApp) {
+      return 'Telegram WebApp is not available';
+    }
 
-  const platform = window.Telegram.WebApp.platform;
-  if (!platform) {
-    return 'Telegram platform not detected';
-  }
+    // Get platform information
+    const platform = window.Telegram.WebApp.platform.toLowerCase();
+    debugLog('Platform check:', { platform });
 
-  if (platform !== 'android' && platform !== 'ios') {
-    return 'Please open this app in the Telegram mobile app';
-  }
+    // Check if we're on mobile
+    if (platform !== 'android' && platform !== 'ios') {
+      return 'Please open this app in Telegram mobile app';
+    }
 
-  return null;
+    // Validate init data
+    if (!window.Telegram.WebApp.initData) {
+      return 'Invalid WebApp initialization';
+    }
+
+    return null;
+  } catch (error) {
+    debugLog('Error validating environment:', error);
+    return 'Failed to validate Telegram environment';
+  }
 };

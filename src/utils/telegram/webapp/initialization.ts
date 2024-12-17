@@ -1,45 +1,65 @@
 import { debugLog } from '../debug';
 import { WebAppError } from './errors';
-import { validateTelegramEnvironment } from '../environment/detection';
+import { validatePlatform } from './detection';
+import { configureWebApp } from './config';
+import { updateWebAppState, resetWebAppState } from './state';
+
+const INIT_TIMEOUT = 5000; // 5 seconds
+const RETRY_INTERVAL = 500; // 0.5 seconds
 
 export const initializeWebApp = async (): Promise<void> => {
   try {
-    const webApp = window.Telegram?.WebApp;
+    debugLog('Starting WebApp initialization');
+    resetWebAppState();
+
+    // Wait for WebApp to be available
+    const webApp = await waitForWebApp();
     if (!webApp) {
-      throw new WebAppError('Telegram WebApp not available');
+      throw new WebAppError('WebApp not available after timeout');
     }
 
-    // Validate environment
-    const validationError = validateTelegramEnvironment();
-    if (validationError) {
-      throw new WebAppError(validationError);
+    // Validate platform
+    const { isValid, error } = validatePlatform();
+    if (!isValid) {
+      throw new WebAppError(error || 'Invalid platform');
     }
 
     // Configure WebApp
-    webApp.expand();
-    
-    if (webApp.enableClosingConfirmation) {
-      webApp.enableClosingConfirmation();
-    }
+    await configureWebApp(webApp);
 
-    if (webApp.setHeaderColor) {
-      webApp.setHeaderColor('#000000');
-    }
+    updateWebAppState({ 
+      isInitialized: true,
+      error: null
+    });
 
-    if (webApp.setBackgroundColor) {
-      webApp.setBackgroundColor('#000000');
-    }
-
-    if (webApp.HapticFeedback) {
-      webApp.HapticFeedback.notificationOccurred('success');
-    }
-
-    // Mark as ready
-    webApp.ready();
-    
-    debugLog('WebApp initialized successfully');
+    debugLog('WebApp initialization completed successfully');
   } catch (error) {
+    const message = error instanceof WebAppError 
+      ? error.message 
+      : 'Failed to initialize WebApp';
+    
+    updateWebAppState({ 
+      isInitialized: false,
+      error: message
+    });
+
     debugLog('WebApp initialization failed:', error);
-    throw error instanceof WebAppError ? error : new WebAppError('Failed to initialize WebApp');
+    throw new WebAppError(message);
   }
+};
+
+const waitForWebApp = async (): Promise<any> => {
+  const startTime = Date.now();
+  
+  while (Date.now() - startTime < INIT_TIMEOUT) {
+    const webApp = window.Telegram?.WebApp;
+    if (webApp) {
+      debugLog('WebApp found');
+      return webApp;
+    }
+    await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL));
+    debugLog('Waiting for WebApp...');
+  }
+  
+  return null;
 };

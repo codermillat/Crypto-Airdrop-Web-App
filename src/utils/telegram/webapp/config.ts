@@ -1,41 +1,62 @@
-import { TelegramWebApp } from '../types/webapp';
 import { debugLog } from '../debug';
+import { WebAppError } from './errors';
+import { updateWebAppState } from './state';
 
-export const configureWebApp = (webApp: TelegramWebApp): boolean => {
+interface ConfigOptions {
+  expandView?: boolean;
+  enableClosingConfirmation?: boolean;
+  headerColor?: string;
+  backgroundColor?: string;
+  enableHapticFeedback?: boolean;
+}
+
+const DEFAULT_CONFIG: ConfigOptions = {
+  expandView: true,
+  enableClosingConfirmation: true,
+  headerColor: '#000000',
+  backgroundColor: '#000000',
+  enableHapticFeedback: true
+};
+
+export const configureWebApp = (
+  webApp: any, 
+  options: ConfigOptions = DEFAULT_CONFIG
+): void => {
   try {
-    expandWebApp(webApp);
-    configureClosing(webApp);
-    configureTheme(webApp);
-    configureHaptics(webApp);
+    debugLog('Configuring WebApp with options:', options);
+
+    if (options.expandView) {
+      webApp.expand();
+    }
+
+    if (options.enableClosingConfirmation && webApp.enableClosingConfirmation) {
+      webApp.enableClosingConfirmation();
+    }
+
+    if (options.headerColor && webApp.setHeaderColor) {
+      webApp.setHeaderColor(options.headerColor);
+    }
+
+    if (options.backgroundColor && webApp.setBackgroundColor) {
+      webApp.setBackgroundColor(options.backgroundColor);
+    }
+
+    if (options.enableHapticFeedback && webApp.HapticFeedback) {
+      webApp.HapticFeedback.notificationOccurred('success');
+    }
+
     webApp.ready();
-    return true;
+    
+    updateWebAppState({ 
+      isConfigured: true,
+      platform: webApp.platform,
+      colorScheme: webApp.colorScheme
+    });
+
+    debugLog('WebApp configuration completed successfully');
   } catch (error) {
-    debugLog('WebApp configuration error:', error);
-    return false;
-  }
-};
-
-const expandWebApp = (webApp: TelegramWebApp) => {
-  webApp.expand();
-};
-
-const configureClosing = (webApp: TelegramWebApp) => {
-  if (typeof webApp.enableClosingConfirmation === 'function') {
-    webApp.enableClosingConfirmation();
-  }
-};
-
-const configureTheme = (webApp: TelegramWebApp) => {
-  if (typeof webApp.setHeaderColor === 'function') {
-    webApp.setHeaderColor('#000000');
-  }
-  if (typeof webApp.setBackgroundColor === 'function') {
-    webApp.setBackgroundColor('#000000');
-  }
-};
-
-const configureHaptics = (webApp: TelegramWebApp) => {
-  if (webApp.HapticFeedback) {
-    webApp.HapticFeedback.notificationOccurred('success');
+    const message = 'Failed to configure WebApp';
+    debugLog(message, error);
+    throw new WebAppError(message);
   }
 };
