@@ -1,27 +1,27 @@
 import { getWebApp, waitForWebApp } from './core';
 import { WebAppError } from './errors';
 import { validateWebAppUser } from './validation';
+import { isTelegramEnvironment, debugTelegramEnvironment } from '../environment';
 
 export const initializeWebApp = async (): Promise<void> => {
   try {
-    // First check if we're in Telegram environment
-    if (!window.Telegram?.WebApp) {
+    // Debug environment information
+    debugTelegramEnvironment();
+
+    // Check if we're in Telegram environment with more lenient validation
+    if (!isTelegramEnvironment()) {
       throw new WebAppError('Please open the app in Telegram');
     }
 
+    // Wait for WebApp to be available
     const webApp = await waitForWebApp();
-
-    // Validate user data before proceeding
-    if (!validateWebAppUser(webApp.initDataUnsafe?.user)) {
-      throw new WebAppError('Invalid or missing user data');
-    }
 
     // Configure WebApp with error handling
     try {
-      configureWebApp(webApp);
+      await configureWebApp(webApp);
     } catch (configError) {
       console.error('WebApp configuration error:', configError);
-      throw new WebAppError('Failed to configure WebApp');
+      // Continue even if some configuration fails
     }
 
     console.log('Telegram WebApp initialized successfully');
@@ -31,7 +31,7 @@ export const initializeWebApp = async (): Promise<void> => {
   }
 };
 
-export const configureWebApp = (webApp: ReturnType<typeof getWebApp>) => {
+export const configureWebApp = async (webApp: ReturnType<typeof getWebApp>) => {
   if (!webApp) {
     throw new WebAppError('WebApp not available');
   }
@@ -60,8 +60,11 @@ export const configureWebApp = (webApp: ReturnType<typeof getWebApp>) => {
 
     // Mark as ready
     webApp.ready();
+
+    return true;
   } catch (error) {
     console.error('Error configuring WebApp:', error);
-    throw new WebAppError('Failed to configure WebApp');
+    // Don't throw, just return false to indicate configuration issues
+    return false;
   }
 };

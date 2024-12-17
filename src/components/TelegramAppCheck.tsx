@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
-import { isTelegramWebApp, initializeTelegramWebApp, getTelegramPlatform } from '../utils/telegram';
+import { isTelegramEnvironment, debugTelegramEnvironment } from '../utils/telegram/environment';
+import { initializeTelegramWebApp } from '../utils/telegram';
 
 const TelegramAppCheck: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isValidPlatform, setIsValidPlatform] = useState(false);
@@ -8,7 +9,10 @@ const TelegramAppCheck: React.FC<{ children: React.ReactNode }> = ({ children })
 
   useEffect(() => {
     const checkPlatform = () => {
-      const isTelegram = isTelegramWebApp();
+      // Debug environment information
+      debugTelegramEnvironment();
+      
+      const isTelegram = isTelegramEnvironment();
       setIsValidPlatform(isTelegram);
       
       if (isTelegram) {
@@ -19,7 +23,7 @@ const TelegramAppCheck: React.FC<{ children: React.ReactNode }> = ({ children })
     };
 
     // Small delay to ensure Telegram WebApp API is available
-    const timeoutId = setTimeout(checkPlatform, 100);
+    const timeoutId = setTimeout(checkPlatform, 500);
     return () => clearTimeout(timeoutId);
   }, []);
 
@@ -28,7 +32,7 @@ const TelegramAppCheck: React.FC<{ children: React.ReactNode }> = ({ children })
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-center p-4">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p>Loading...</p>
+          <p>Initializing...</p>
         </div>
       </div>
     );
@@ -45,6 +49,8 @@ const TelegramAppCheck: React.FC<{ children: React.ReactNode }> = ({ children })
           </p>
           <a 
             href="https://t.me/TonFunZoneBot"
+            target="_blank"
+            rel="noopener noreferrer"
             className="mt-4 inline-block bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
           >
             Open in Telegram
