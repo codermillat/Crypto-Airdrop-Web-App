@@ -1,32 +1,14 @@
-export * from './webapp';
-export * from './security';
-export * from './types';
+// Re-export all telegram utilities
+export * from './types/user';
+export * from './types/webapp';
+export * from './environment/detection';
+export * from './environment/info';
+export * from './webapp/initialization';
+export * from './webapp/errors';
+export * from './debug';
 
-export const getTelegramWebAppUser = () => {
-  try {
-    const webApp = window.Telegram?.WebApp;
-    if (!webApp?.initDataUnsafe?.user) {
-      throw new Error('No Telegram user data available');
-    }
-    return webApp.initDataUnsafe.user;
-  } catch (error) {
-    console.error('Error getting Telegram user:', error);
-    return null;
-  }
-};
-
-export const validateTelegramUser = (user: any): boolean => {
-  if (!user?.id || !user?.first_name) {
-    return false;
-  }
-  return true;
-};
-
-export const getTelegramPlatform = (): string => {
-  try {
-    return window.Telegram?.WebApp?.platform || 'unknown';
-  } catch (error) {
-    console.error('Error getting Telegram platform:', error);
-    return 'unknown';
-  }
-};
+// Export commonly used functions directly
+export { isTelegramEnvironment } from './environment/detection';
+export { getEnvironmentInfo } from './environment/info';
+export { initializeWebApp } from './webapp/initialization';
+export { debugTelegramEnvironment } from './debug';
