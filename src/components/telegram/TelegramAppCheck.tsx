@@ -3,9 +3,9 @@ import { AlertCircle } from 'lucide-react';
 import { isTelegramEnvironment } from '../../utils/telegram/environment';
 import { 
   waitForWebApp, 
-  initializeWebApp, 
-  WebAppError 
+  initializeWebApp
 } from '../../utils/telegram/webapp';
+import { WebAppError } from '../../utils/telegram/webapp/errors';
 import LoadingState from '../common/LoadingState';
 import ErrorState from '../common/ErrorState';
 
