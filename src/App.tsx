@@ -10,7 +10,7 @@ import Earn from './pages/Earn';
 import Admin from './pages/Admin';
 import ErrorBoundary from './components/ErrorBoundary';
 import WalletProvider from './providers/WalletProvider';
-import AppInitializer from './components/AppInitializer';
+import TelegramCheck from './components/TelegramCheck';
 import { getManifestUrl } from './utils/config';
 
 const App: React.FC = () => {
@@ -18,7 +18,7 @@ const App: React.FC = () => {
 
   return (
     <ErrorBoundary>
-      <AppInitializer>
+      <TelegramCheck>
         <TonConnectUIProvider 
           manifestUrl={manifestUrl}
           uiPreferences={{
@@ -53,7 +53,7 @@ const App: React.FC = () => {
             </BrowserRouter>
           </WalletProvider>
         </TonConnectUIProvider>
-      </AppInitializer>
+      </TelegramCheck>
     </ErrorBoundary>
   );
 };
