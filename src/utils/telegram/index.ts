@@ -12,3 +12,10 @@ export { isTelegramEnvironment } from './environment/detection';
 export { getEnvironmentInfo } from './environment/info';
 export { initializeWebApp } from './webapp/initialization';
 export { debugTelegramEnvironment } from './debug';
+
+// Export user-related functions
+export const getTelegramWebAppUser = () => window.Telegram?.WebApp?.initDataUnsafe?.user || null;
+export const validateTelegramUser = (user: any) => {
+  if (!user) return false;
+  return !!(user.id && user.first_name);
+};

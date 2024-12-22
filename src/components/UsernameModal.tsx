@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useWalletStore } from '../store/useWalletStore';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { registerUser } from '../utils/api';
