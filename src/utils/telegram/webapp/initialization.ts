@@ -1,6 +1,14 @@
 import { debugLog } from '../debug';
-import { isTelegramWebApp } from './detection';
+import { isTelegramWebApp } from '../detection/webapp';
 import { waitForWebApp } from './core';
+import { isMacOSClient } from '../detection/platform';
+
+const initializeMacOSWebApp = async (): Promise<void> => {
+  debugLog('Initializing MacOS WebApp');
+  // MacOS specific initialization if needed
+  // For now, we just consider it initialized
+  return Promise.resolve();
+};
 
 export const initializeWebApp = async (): Promise<void> => {
   try {
@@ -9,6 +17,11 @@ export const initializeWebApp = async (): Promise<void> => {
     // Environment check
     if (!isTelegramWebApp()) {
       throw new Error('Please open the app in Telegram');
+    }
+
+    // Special handling for MacOS client
+    if (isMacOSClient()) {
+      return initializeMacOSWebApp();
     }
 
     // Wait for WebApp
