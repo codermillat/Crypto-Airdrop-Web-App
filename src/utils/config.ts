@@ -37,8 +37,3 @@ export const getConfig = () => {
     isDebug: import.meta.env.VITE_DEBUG_MODE === 'true'
   };
 };
-
-export const getManifestUrl = () => {
-  const { siteUrl } = getConfig();
-  return `${siteUrl}/tonconnect-manifest.json`;
-};

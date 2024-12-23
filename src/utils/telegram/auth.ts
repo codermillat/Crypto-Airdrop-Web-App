@@ -1,6 +1,13 @@
 import CryptoJS from 'crypto-js';
-import { getConfig } from '../../config';
-import { debugLog } from '../debug';
+import { getConfig } from '../config';
+import { debugLog } from './debug';
+
+export class TelegramAuthError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'TelegramAuthError';
+  }
+}
 
 export const validateInitData = (initData: string): boolean => {
   try {
