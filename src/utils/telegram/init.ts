@@ -11,20 +11,24 @@ export class InitializationError extends Error {
 }
 
 export const isTelegramWebApp = (): boolean => {
-  // Check if we're in Telegram's environment
+  // More robust environment detection
   if (window.Telegram?.WebApp) {
     return true;
   }
 
-  // Check URL parameters
+  // Check URL parameters that indicate Telegram WebApp
   const searchParams = new URLSearchParams(window.location.search);
-  if (searchParams.has('tgWebAppData') || searchParams.has('tgWebAppStartParam')) {
+  if (searchParams.has('tgWebAppData') || 
+      searchParams.has('tgWebAppStartParam') || 
+      searchParams.has('tgWebAppPlatform')) {
     return true;
   }
 
-  // Check user agent
+  // Check user agent for Telegram-specific strings
   const userAgent = navigator.userAgent.toLowerCase();
-  return userAgent.includes('telegram') || userAgent.includes('tgweb');
+  return userAgent.includes('telegram') || 
+         userAgent.includes('tgweb') || 
+         userAgent.includes('webview');
 };
 
 const waitForWebApp = (): Promise<TelegramWebApp> => {
@@ -90,18 +94,5 @@ export const initializeWebApp = async (): Promise<void> => {
   } catch (error) {
     console.error('Telegram WebApp initialization failed:', error);
     throw error instanceof InitializationError ? error : new InitializationError('Failed to initialize WebApp');
-  }
-};
-
-export const isWebAppInitialized = async (): Promise<boolean> => {
-  try {
-    if (!isTelegramWebApp()) {
-      return false;
-    }
-
-    const webApp = await waitForWebApp();
-    return !!webApp.initDataUnsafe?.user?.id;
-  } catch {
-    return false;
   }
 };
