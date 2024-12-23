@@ -1,64 +1,23 @@
-import { Schema, model } from 'mongoose';
-
+// Add unique index for telegramId to ensure one account per Telegram user
 const userSchema = new Schema({
-  address: {
-    type: String,
-    required: true,
-    unique: true,
-    index: true
-  },
-  username: {
-    type: String,
-    unique: true,
-    sparse: true,
-    trim: true,
-    minlength: 3,
-    maxlength: 20
-  },
+  // ... existing fields ...
   telegramId: {
     type: String,
-    unique: true,
-    sparse: true
-  },
-  points: {
-    type: Number,
-    default: 0,
-    min: 0
-  },
-  role: {
-    type: String,
-    enum: ['user', 'admin'],
-    default: 'user'
-  },
-  isActive: {
-    type: Boolean,
-    default: true
-  },
-  completedTasks: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Task'
-  }],
-  referralCode: {
-    type: String,
     required: true,
     unique: true,
     index: true
-  },
-  referredBy: {
-    type: Schema.Types.ObjectId,
-    ref: 'User'
-  },
-  referralCount: {
-    type: Number,
-    default: 0
-  },
-  lastLogin: Date,
-  createdAt: {
-    type: Date,
-    default: Date.now
   }
 });
 
-userSchema.index({ points: -1 });
+// Add pre-save hook to check for existing Telegram ID
+userSchema.pre('save', async function(next) {
+  if (this.isNew) {
+    const existingUser = await this.constructor.findOne({ telegramId: this.telegramId });
+    if (existingUser) {
+      next(new Error('This Telegram account is already registered'));
+    }
+  }
+  next();
+});
 
 export default model('User', userSchema);

@@ -1,13 +1,6 @@
-import { TelegramUser, WebAppInitData } from '../../types/telegram';
+import { TelegramUser } from '../../types/telegram';
 
-export class ValidationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ValidationError';
-  }
-}
-
-export const validateWebAppUser = (user: TelegramUser | undefined): boolean => {
+export const validateTelegramUser = (user: TelegramUser | undefined): boolean => {
   if (!user?.id || !user?.first_name) {
     return false;
   }
@@ -21,19 +14,21 @@ export const validateWebAppUser = (user: TelegramUser | undefined): boolean => {
   return true;
 };
 
-export const validateInitData = (data: WebAppInitData): void => {
-  if (!data.auth_date || Date.now() / 1000 - data.auth_date > 86400) {
-    throw new ValidationError('Authentication data has expired');
-  }
+export const isWebAppAvailable = async (): Promise<boolean> => {
+  try {
+    // Only allow access through Telegram WebApp
+    if (!window.Telegram?.WebApp) {
+      return false;
+    }
 
-  if (!validateWebAppUser(data.user)) {
-    throw new ValidationError('Invalid user data');
-  }
-};
+    // Verify user data exists
+    const user = window.Telegram.WebApp.initDataUnsafe?.user;
+    if (!validateTelegramUser(user)) {
+      return false;
+    }
 
-export const validatePlatform = (): boolean => {
-  const userAgent = navigator.userAgent.toLowerCase();
-  return userAgent.includes('telegram') || 
-         userAgent.includes('tgweb') || 
-         !!window.Telegram?.WebApp;
+    return true;
+  } catch {
+    return false;
+  }
 };
