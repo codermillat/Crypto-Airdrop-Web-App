@@ -1,7 +1,10 @@
 import { debugLog } from '../debug';
 import { WebAppError } from './errors';
+import { getConfig } from '../../config';
 
-export const setupWebAppMenu = async (botToken: string, url: string): Promise<void> => {
+export const setupWebAppMenu = async (): Promise<void> => {
+  const { botToken, siteUrl } = getConfig();
+  
   try {
     const response = await fetch(
       `https://api.telegram.org/bot${botToken}/setChatMenuButton`,
@@ -14,7 +17,7 @@ export const setupWebAppMenu = async (botToken: string, url: string): Promise<vo
           menu_button: {
             type: 'web_app',
             text: 'Open App',
-            web_app: { url }
+            web_app: { url: siteUrl }
           }
         }),
       }

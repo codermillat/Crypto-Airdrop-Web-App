@@ -2,20 +2,20 @@ import { isDevelopment } from './validation';
 
 const DEFAULT_DEV_CONFIG = {
   botToken: '0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
-  botUsername: 'your_bot_username',
+  botUsername: 'TonFunZoneBot',
   apiUrl: 'http://localhost:3000',
-  appUrl: 'http://localhost:5173',
+  siteUrl: 'http://localhost:5173',
   isDebug: true
 };
 
-export const getTelegramConfig = () => {
+export const getConfig = () => {
   // In development, use default values if env vars are not set
   if (isDevelopment()) {
     return {
       botToken: import.meta.env.VITE_TELEGRAM_BOT_TOKEN || DEFAULT_DEV_CONFIG.botToken,
       botUsername: import.meta.env.VITE_TELEGRAM_BOT_USERNAME || DEFAULT_DEV_CONFIG.botUsername,
       apiUrl: import.meta.env.VITE_API_URL || DEFAULT_DEV_CONFIG.apiUrl,
-      appUrl: import.meta.env.VITE_APP_URL || DEFAULT_DEV_CONFIG.appUrl,
+      siteUrl: import.meta.env.VITE_SITE_URL || DEFAULT_DEV_CONFIG.siteUrl,
       isDebug: import.meta.env.VITE_DEBUG_MODE === 'true' || DEFAULT_DEV_CONFIG.isDebug
     };
   }
@@ -33,25 +33,7 @@ export const getTelegramConfig = () => {
     botToken: import.meta.env.VITE_TELEGRAM_BOT_TOKEN,
     botUsername: import.meta.env.VITE_TELEGRAM_BOT_USERNAME,
     apiUrl: import.meta.env.VITE_API_URL,
-    appUrl: import.meta.env.VITE_APP_URL,
+    siteUrl: import.meta.env.VITE_SITE_URL,
     isDebug: import.meta.env.VITE_DEBUG_MODE === 'true'
   };
-};
-
-export const getManifestUrl = (): string => {
-  const baseUrl = import.meta.env.VITE_APP_URL || window.location.origin;
-  return `${baseUrl}/tonconnect-manifest.json`;
-};
-
-export const isProduction = (): boolean => {
-  return import.meta.env.PROD;
-};
-
-export const isDevelopment = (): boolean => {
-  return import.meta.env.DEV;
-};
-
-export const getTelegramBotUsername = (): string => {
-  const { botUsername } = getTelegramConfig();
-  return botUsername;
 };
