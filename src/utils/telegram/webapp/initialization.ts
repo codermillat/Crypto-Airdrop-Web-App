@@ -1,54 +1,25 @@
 import { debugLog } from '../debug';
-import { isTelegramWebApp } from '../detection/webapp';
-import { waitForWebApp } from './core';
-import { isMacOSClient } from '../detection/platform';
-
-const initializeMacOSWebApp = async (): Promise<void> => {
-  debugLog('Initializing MacOS WebApp');
-  // MacOS specific initialization if needed
-  // For now, we just consider it initialized
-  return Promise.resolve();
-};
+import { performInitialChecks } from './initialization/checks';
+import { configureWebApp } from './initialization/config';
+import { WebAppError } from './errors';
 
 export const initializeWebApp = async (): Promise<void> => {
   try {
     debugLog('Starting WebApp initialization');
 
-    // Environment check
-    if (!isTelegramWebApp()) {
-      throw new Error('Please open the app in Telegram');
-    }
+    // Perform initial checks and wait for WebApp to be ready
+    await performInitialChecks();
 
-    // Special handling for MacOS client
-    if (isMacOSClient()) {
-      return initializeMacOSWebApp();
-    }
-
-    // Wait for WebApp
-    const webApp = await waitForWebApp();
+    // Get WebApp instance
+    const webApp = window.Telegram.WebApp;
 
     // Configure WebApp
-    debugLog('Configuring WebApp');
-    webApp.expand();
+    configureWebApp(webApp);
 
-    // Set theme colors
-    if (webApp.setHeaderColor) {
-      webApp.setHeaderColor('#000000');
-    }
-    if (webApp.setBackgroundColor) {
-      webApp.setBackgroundColor('#000000');
-    }
-
-    // Enable haptic feedback
-    if (webApp.HapticFeedback) {
-      webApp.HapticFeedback.notificationOccurred('success');
-    }
-
-    // Mark as ready
-    webApp.ready();
-    debugLog('WebApp initialization completed');
+    debugLog('WebApp initialization completed successfully');
   } catch (error) {
-    debugLog('WebApp initialization failed:', error);
-    throw error;
+    const errorMessage = error instanceof Error ? error.message : 'Failed to initialize WebApp';
+    debugLog('WebApp initialization failed:', errorMessage);
+    throw new WebAppError(errorMessage);
   }
 };

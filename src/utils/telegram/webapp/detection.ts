@@ -1,39 +1,16 @@
 import { debugLog } from '../debug';
 
-export const isTelegramWebApp = (): boolean => {
-  try {
-    // Primary check: WebApp API
-    if (window.Telegram?.WebApp) {
-      debugLog('WebApp API detected');
-      return true;
-    }
+export const isWebAppAvailable = (): boolean => {
+  const hasWebApp = 'Telegram' in window && 'WebApp' in window.Telegram;
+  debugLog('WebApp availability check:', { hasWebApp });
+  return hasWebApp;
+};
 
-    // URL parameters check
-    const searchParams = new URLSearchParams(window.location.search);
-    const hasWebAppParams = searchParams.has('tgWebAppData') || 
-                          searchParams.has('tgWebAppStartParam') ||
-                          searchParams.has('tgWebAppPlatform');
-    
-    if (hasWebAppParams) {
-      debugLog('WebApp URL parameters detected');
-      return true;
-    }
-
-    // User agent check
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isTelegramClient = userAgent.includes('telegram') || 
-                           userAgent.includes('tgweb') || 
-                           userAgent.includes('webview');
-
-    if (isTelegramClient) {
-      debugLog('Telegram user agent detected');
-      return true;
-    }
-
-    debugLog('Not in Telegram environment');
-    return false;
-  } catch (error) {
-    console.error('Error checking Telegram environment:', error);
-    return false;
-  }
+export const isWebAppReady = (): boolean => {
+  if (!isWebAppAvailable()) return false;
+  
+  const webApp = window.Telegram.WebApp;
+  const isReady = !!(webApp.initDataUnsafe && webApp.initDataUnsafe.user);
+  debugLog('WebApp ready check:', { isReady });
+  return isReady;
 };
