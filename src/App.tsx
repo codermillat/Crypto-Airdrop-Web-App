@@ -11,7 +11,7 @@ import Admin from './pages/Admin';
 import ErrorBoundary from './components/ErrorBoundary';
 import WalletProvider from './providers/WalletProvider';
 import TelegramCheck from './components/TelegramCheck';
-import { getManifestUrl } from './utils/config';
+import { getManifestUrl } from './utils/config/manifest';
 
 const App: React.FC = () => {
   const manifestUrl = getManifestUrl();

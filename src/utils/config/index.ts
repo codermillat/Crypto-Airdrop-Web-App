@@ -1,6 +1,14 @@
-import { isDevelopment } from './validation';
+import { isDevelopment } from '../validation';
 
-const DEFAULT_DEV_CONFIG = {
+interface Config {
+  botToken: string;
+  botUsername: string;
+  apiUrl: string;
+  siteUrl: string;
+  isDebug: boolean;
+}
+
+const DEFAULT_DEV_CONFIG: Config = {
   botToken: '0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
   botUsername: 'TonFunZoneBot',
   apiUrl: 'http://localhost:3000',
@@ -8,7 +16,7 @@ const DEFAULT_DEV_CONFIG = {
   isDebug: true
 };
 
-export const getConfig = () => {
+export const getConfig = (): Config => {
   // In development, use default values if env vars are not set
   if (isDevelopment()) {
     return {
@@ -38,7 +46,4 @@ export const getConfig = () => {
   };
 };
 
-export const getManifestUrl = () => {
-  const { siteUrl } = getConfig();
-  return `${siteUrl}/tonconnect-manifest.json`;
-};
+export * from './manifest';
