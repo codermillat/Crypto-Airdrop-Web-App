@@ -1,19 +1,35 @@
-import React, { ReactNode, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useCallback, useEffect, useState } from 'react';
 import { useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
 import { useWalletStore } from '../../store/useWalletStore';
-import { WalletContext } from './context';
-import { initializeWalletConnection, registerOrFetchWallet, isTonConnectUIReady } from './utils';
-import type { WalletState } from './types';
+import { registerWallet } from '../../utils/api';
+
+interface WalletContextType {
+  isConnected: boolean;
+  address: string | null;
+  isInitialized: boolean;
+  error: Error | null;
+  connect: () => Promise<void>;
+  disconnect: () => Promise<void>;
+}
+
+const WalletContext = createContext<WalletContextType>({
+  isConnected: false,
+  address: null,
+  isInitialized: false,
+  error: null,
+  connect: async () => {},
+  disconnect: async () => {}
+});
+
+export const useWallet = () => useContext(WalletContext);
 
 interface Props {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 const WalletProvider: React.FC<Props> = ({ children }) => {
-  const [state, setState] = useState<WalletState>({
-    isInitialized: false,
-    error: null
-  });
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const [tonConnectUI] = useTonConnectUI();
   const userAddress = useTonAddress(false);
   const { 
@@ -25,64 +41,103 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
     resetWalletState 
   } = useWalletStore();
 
+  const handleConnect = useCallback(async () => {
+    if (!tonConnectUI) {
+      throw new Error('TON Connect UI not available');
+    }
+    
+    try {
+      setError(null);
+      await tonConnectUI.connectWallet();
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to connect wallet');
+      setError(error);
+      throw error;
+    }
+  }, [tonConnectUI]);
+
+  const handleDisconnect = useCallback(async () => {
+    if (!tonConnectUI) {
+      throw new Error('TON Connect UI not available');
+    }
+    
+    try {
+      setError(null);
+      await tonConnectUI.disconnect();
+      resetWalletState();
+      localStorage.removeItem('wallet_address');
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error('Failed to disconnect wallet');
+      setError(error);
+      throw error;
+    }
+  }, [tonConnectUI, resetWalletState]);
+
   useEffect(() => {
-    let mounted = true;
-    let initTimeout: NodeJS.Timeout;
-
-    const initialize = async () => {
+    const initializeWallet = async () => {
       try {
-        // Set initialization timeout
-        initTimeout = setTimeout(() => {
-          if (mounted) {
-            setState(prev => ({
-              ...prev,
-              error: new Error('Wallet initialization timed out')
-            }));
-          }
-        }, 10000);
-
-        await initializeWalletConnection(tonConnectUI);
-        
-        if (mounted) {
-          setState(prev => ({ ...prev, isInitialized: true, error: null }));
-        }
-      } catch (err: any) {
-        if (mounted) {
-          console.error('Wallet initialization error:', err);
-          setState(prev => ({
-            ...prev,
-            isInitialized: true,
-            error: err instanceof Error ? err : new Error('Failed to initialize wallet')
-          }));
-        }
-      } finally {
-        clearTimeout(initTimeout);
+        await tonConnectUI?.connectionRestored;
+        setIsInitialized(true);
+        setError(null);
+      } catch (err) {
+        console.error('Wallet initialization error:', err);
+        setError(err instanceof Error ? err : new Error('Failed to initialize wallet'));
+        setIsInitialized(true);
       }
     };
 
-    initialize();
-    return () => { 
-      mounted = false;
-      clearTimeout(initTimeout);
-    };
+    initializeWallet();
   }, [tonConnectUI]);
 
-  // Rest of the component remains the same...
+  useEffect(() => {
+    const handleAddressChange = async () => {
+      if (!isInitialized) return;
 
-  const isConnected = state.isInitialized && 
-    isTonConnectUIReady(tonConnectUI) &&
+      if (userAddress) {
+        try {
+          setAddress(userAddress);
+          localStorage.setItem('wallet_address', userAddress);
+          const userData = await registerWallet(userAddress);
+          
+          if (userData) {
+            setPoints(userData.points || 0);
+            setUsername(userData.username || null);
+            setIsRegistered(!!userData.username);
+            setReferralCode(userData.referralCode || null);
+          }
+          
+          setError(null);
+        } catch (err) {
+          console.error('Failed to handle address change:', err);
+          setError(err instanceof Error ? err : new Error('Failed to connect wallet'));
+          resetWalletState();
+          localStorage.removeItem('wallet_address');
+        }
+      } else {
+        resetWalletState();
+        localStorage.removeItem('wallet_address');
+      }
+    };
+
+    handleAddressChange();
+  }, [isInitialized, userAddress, setAddress, setPoints, setUsername, setIsRegistered, setReferralCode, resetWalletState]);
+
+  const isConnected = isInitialized && 
+    !!tonConnectUI?.connector?.connected && 
     !!userAddress && 
-    !state.error;
+    !error;
+
+  const value = {
+    isConnected,
+    address: userAddress || null,
+    isInitialized,
+    error,
+    connect: handleConnect,
+    disconnect: handleDisconnect
+  };
 
   return (
-    <WalletContext.Provider value={{
-      isConnected,
-      address: userAddress || null,
-      isInitialized: state.isInitialized,
-      error: state.error,
-      connect,
-      disconnect
-    }}>
+    <WalletContext.Provider value={value}>
       {children}
     </WalletContext.Provider>
   );

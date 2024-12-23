@@ -1,4 +1,4 @@
-import { isDevelopment } from '../validation';
+import { getEnvironment } from './environment';
 
 interface Config {
   botToken: string;
@@ -17,23 +17,23 @@ const DEFAULT_DEV_CONFIG: Config = {
 };
 
 export const getConfig = (): Config => {
-  // In development, use default values if env vars are not set
-  if (isDevelopment()) {
+  const { isDevelopment, baseUrl } = getEnvironment();
+
+  if (isDevelopment) {
     return {
       botToken: import.meta.env.VITE_TELEGRAM_BOT_TOKEN || DEFAULT_DEV_CONFIG.botToken,
       botUsername: import.meta.env.VITE_TELEGRAM_BOT_USERNAME || DEFAULT_DEV_CONFIG.botUsername,
       apiUrl: import.meta.env.VITE_API_URL || DEFAULT_DEV_CONFIG.apiUrl,
-      siteUrl: window.location.origin || DEFAULT_DEV_CONFIG.siteUrl,
+      siteUrl: baseUrl || DEFAULT_DEV_CONFIG.siteUrl,
       isDebug: import.meta.env.VITE_DEBUG_MODE === 'true' || DEFAULT_DEV_CONFIG.isDebug
     };
   }
 
-  // In production, use window.location.origin for siteUrl
   return {
     botToken: import.meta.env.VITE_TELEGRAM_BOT_TOKEN || '',
     botUsername: import.meta.env.VITE_TELEGRAM_BOT_USERNAME || '',
     apiUrl: import.meta.env.VITE_API_URL || '',
-    siteUrl: window.location.origin,
+    siteUrl: baseUrl,
     isDebug: import.meta.env.VITE_DEBUG_MODE === 'true'
   };
 };
