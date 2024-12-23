@@ -53,16 +53,16 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
       return null;
     }
     try {
-      const userData: WalletData = await registerWallet(address); // Explicit type annotation here
+      const userData: WalletData = await registerWallet(address);
 
       if (!userData || !userData.address) {
         throw new Error('Invalid wallet data received');
       }
 
       setPoints(userData.points || 0);
-      setUsername(userData.username || "");
+      setUsername(userData.username || null);
       setIsRegistered(!!userData.username);
-      setReferralCode(userData.referralCode || "");
+      setReferralCode(userData.referralCode || null);
       
       return userData;
     } catch (err: any) {
@@ -98,7 +98,10 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
         await Promise.race([
           tonConnectUI.connectionRestored,
           timeoutPromise
-        ]);
+        ]).catch(err => {
+          // Handle timeout or connection error gracefully
+          console.warn('Connection restoration warning:', err);
+        });
         
         clearTimeout(initTimeout);
         
