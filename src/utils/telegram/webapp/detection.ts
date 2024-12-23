@@ -1,44 +1,39 @@
 import { debugLog } from '../debug';
 
-interface PlatformInfo {
-  platform: string;
-  isMobile: boolean;
-  isWebView: boolean;
-  hasWebApp: boolean;
-}
+export const isTelegramWebApp = (): boolean => {
+  try {
+    // Primary check: WebApp API
+    if (window.Telegram?.WebApp) {
+      debugLog('WebApp API detected');
+      return true;
+    }
 
-export const detectPlatform = (): PlatformInfo => {
-  const webApp = window.Telegram?.WebApp;
-  const platform = webApp?.platform?.toLowerCase() || 'unknown';
-  const userAgent = navigator.userAgent.toLowerCase();
+    // URL parameters check
+    const searchParams = new URLSearchParams(window.location.search);
+    const hasWebAppParams = searchParams.has('tgWebAppData') || 
+                          searchParams.has('tgWebAppStartParam') ||
+                          searchParams.has('tgWebAppPlatform');
+    
+    if (hasWebAppParams) {
+      debugLog('WebApp URL parameters detected');
+      return true;
+    }
 
-  const info = {
-    platform,
-    isMobile: platform === 'android' || platform === 'ios',
-    isWebView: userAgent.includes('telegram') || userAgent.includes('webview'),
-    hasWebApp: !!webApp
-  };
+    // User agent check
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isTelegramClient = userAgent.includes('telegram') || 
+                           userAgent.includes('tgweb') || 
+                           userAgent.includes('webview');
 
-  debugLog('Platform detection:', info);
-  return info;
-};
+    if (isTelegramClient) {
+      debugLog('Telegram user agent detected');
+      return true;
+    }
 
-export const validatePlatform = (): { isValid: boolean; error?: string } => {
-  const { platform, isMobile, hasWebApp } = detectPlatform();
-
-  if (!hasWebApp) {
-    return { 
-      isValid: false, 
-      error: 'Telegram WebApp is not available' 
-    };
+    debugLog('Not in Telegram environment');
+    return false;
+  } catch (error) {
+    console.error('Error checking Telegram environment:', error);
+    return false;
   }
-
-  if (!isMobile) {
-    return { 
-      isValid: false, 
-      error: 'Please open this app in Telegram mobile app' 
-    };
-  }
-
-  return { isValid: true };
 };

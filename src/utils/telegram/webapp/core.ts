@@ -1,22 +1,31 @@
 import { TelegramWebApp } from '../../../types/telegram';
-import { WebAppError } from './errors';
+import { debugLog } from '../debug';
 
-const INIT_TIMEOUT = 5000; // 5 seconds
+const POLLING_INTERVAL = 50; // ms
+const MAX_RETRIES = 100; // 5 seconds total
 
 export const getWebApp = (): TelegramWebApp | null => {
   return window.Telegram?.WebApp || null;
 };
 
 export const waitForWebApp = async (): Promise<TelegramWebApp> => {
-  const startTime = Date.now();
+  let retries = 0;
   
-  while (Date.now() - startTime < INIT_TIMEOUT) {
+  while (retries < MAX_RETRIES) {
     const webApp = getWebApp();
+    
     if (webApp) {
+      debugLog('WebApp found');
       return webApp;
     }
-    await new Promise(resolve => setTimeout(resolve, 100));
+
+    await new Promise(resolve => setTimeout(resolve, POLLING_INTERVAL));
+    retries++;
+    
+    if (retries % 20 === 0) { // Log every second
+      debugLog(`Waiting for WebApp... (${retries / 20}s)`);
+    }
   }
   
-  throw new WebAppError('Telegram WebApp not available');
+  throw new Error('Telegram WebApp initialization timed out');
 };

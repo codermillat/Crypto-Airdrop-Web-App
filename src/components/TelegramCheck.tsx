@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
-import { isTelegramWebApp, initializeWebApp } from '../utils/telegram/init';
+import { initializeWebApp } from '../utils/telegram/webapp/initialization';
+import { isTelegramWebApp } from '../utils/telegram/webapp/detection';
+import LoadingState from './LoadingState';
 
 const TelegramCheck: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isValid, setIsValid] = useState(false);
@@ -8,35 +10,41 @@ const TelegramCheck: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
+    let mounted = true;
+
     const initialize = async () => {
       try {
         if (!isTelegramWebApp()) {
-          setError('Please open this app in Telegram');
-          return;
+          throw new Error('Please open this app in Telegram');
         }
 
         await initializeWebApp();
-        setIsValid(true);
-        setError(null);
+        
+        if (mounted) {
+          setIsValid(true);
+          setError(null);
+        }
       } catch (err: any) {
-        setError(err.message || 'Failed to initialize Telegram WebApp');
+        if (mounted) {
+          setError(err.message || 'Failed to initialize Telegram WebApp');
+          setIsValid(false);
+        }
       } finally {
-        setIsInitializing(false);
+        if (mounted) {
+          setIsInitializing(false);
+        }
       }
     };
 
     initialize();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (isInitializing) {
-    return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
-        <div className="text-center p-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p>Initializing...</p>
-        </div>
-      </div>
-    );
+    return <LoadingState message="Initializing Telegram WebApp..." />;
   }
 
   if (!isValid || error) {
