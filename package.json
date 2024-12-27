@@ -8,8 +8,8 @@
   },
   "scripts": {
     "dev": "vite",
-    "prebuild": "npm install typescript",
-    "build": "./node_modules/.bin/tsc && vite build",
+    "prebuild": "chmod +x ./node_modules/.bin/tsc && npm install typescript",
+    "build": "npx tsc && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
