@@ -3,13 +3,16 @@ import { useTonAddress } from '@tonconnect/ui-react';
 import { useWalletStore } from '../../store/useWalletStore';
 import { WalletContext } from './context';
 import { useWalletInitialization, useWalletConnection } from './hooks';
+import { getWalletConnectionConfig } from '../../config/wallet/connection';
+import { getWalletUIConfig } from '../../config/wallet/ui';
 
-interface Props {
-  children: React.ReactNode;
-}
+const config = {
+  connection: getWalletConnectionConfig(),
+  ui: getWalletUIConfig()
+};
 
-const WalletProvider: React.FC<Props> = ({ children }) => {
-  const { isInitialized, error, connector } = useWalletInitialization();
+const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isInitialized, error, connector } = useWalletInitialization(config);
   const { connect, disconnect } = useWalletConnection(connector);
   const userAddress = useTonAddress(false);
   const { setAddress, resetWalletState } = useWalletStore();
