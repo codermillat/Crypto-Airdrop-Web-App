@@ -11,9 +11,17 @@ services:
         sync: false
       - key: URL
         sync: false
-      - key: VITE_APP_URL
-        sync: false
       - key: PORT
-        sync: false
+        value: 10000
       - key: NODE_ENV
         value: production
+    autoDeploy: true
+    healthCheckPath: /api/health
+    disk:
+      name: tmp
+      mountPath: /tmp
+      sizeGB: 1
+    scaling:
+      minInstances: 1
+      maxInstances: 3
+      targetMemoryPercent: 80
