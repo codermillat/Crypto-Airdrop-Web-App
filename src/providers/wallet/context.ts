@@ -1,13 +1,5 @@
 import { createContext } from 'react';
-
-export interface WalletContextType {
-  isConnected: boolean;
-  address: string | null;
-  isInitialized: boolean;
-  error: Error | null;
-  connect: () => Promise<void>;
-  disconnect: () => Promise<void>;
-}
+import { WalletContextType } from './types';
 
 export const WalletContext = createContext<WalletContextType>({
   isConnected: false,
