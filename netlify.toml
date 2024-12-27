@@ -32,7 +32,7 @@
       script-src 'self' 'unsafe-inline' 'unsafe-eval';
       style-src 'self' 'unsafe-inline';
       img-src 'self' data: https: blob:;
-      connect-src 'self' https://*.supabase.co https://api.telegram.org https://*.tonapi.io https://*.ton.org;
+      connect-src 'self' https://*.supabase.co https://api.telegram.org https://*.tonapi.io https://*.ton.org https://raw.githubusercontent.com;
       frame-ancestors 'none';
       form-action 'self';
       base-uri 'self';
