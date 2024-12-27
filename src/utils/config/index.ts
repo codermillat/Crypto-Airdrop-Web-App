@@ -9,7 +9,7 @@ interface Config {
 }
 
 const DEFAULT_DEV_CONFIG: Config = {
-  botToken: '7395999208:AAHD-3nVoIWFDF1uAGOWGCTmmMut4J2AXzM',
+  botToken: '0000000000:XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX',
   botUsername: 'TonFunZoneBot',
   apiUrl: 'http://localhost:3000',
   siteUrl: 'http://localhost:5173',
