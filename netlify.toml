@@ -27,7 +27,7 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://*.supabase.co https://api.telegram.org;"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: *.githubusercontent.com tonflow.net; connect-src 'self' https://*.supabase.co https://api.telegram.org https://raw.githubusercontent.com;"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
 
 # Redirect all routes to index.html for SPA
