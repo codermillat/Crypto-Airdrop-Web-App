@@ -4,7 +4,8 @@ import {
   Route, 
   createRoutesFromElements, 
   createBrowserRouter,
-  RouterProvider 
+  RouterProvider,
+  Outlet
 } from 'react-router-dom';
 import AppProvider from './providers/app/AppProvider';
 import TelegramAuthCheck from './components/TelegramAuthCheck';
@@ -18,7 +19,7 @@ import Admin from './pages/Admin';
 
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route element={<MainLayout />}>
+    <Route element={<MainLayout><Outlet /></MainLayout>}>
       <Route path="/" element={<Home />} />
       <Route path="/tasks" element={<Tasks />} />
       <Route path="/leaderboard" element={<Leaderboard />} />
@@ -26,13 +27,7 @@ const router = createBrowserRouter(
       <Route path="/earn" element={<Earn />} />
       <Route path="/admin" element={<Admin />} />
     </Route>
-  ),
-  {
-    future: {
-      v7_startTransition: true,
-      v7_relativeSplatPath: true
-    }
-  }
+  )
 );
 
 const App: React.FC = () => (
