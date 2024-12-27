@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { validateInitData } from '../utils/telegram/auth';
 import LoadingState from './LoadingState';
+import TelegramLink from './common/TelegramLink';
 
 interface Props {
   children: React.ReactNode;
@@ -47,14 +48,7 @@ const TelegramAuthCheck: React.FC<Props> = ({ children }) => {
           <p className="text-gray-400 mb-4">
             Please open this app in Telegram
           </p>
-          <a 
-            href="https://t.me/your_bot_username"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-block bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600"
-          >
-            Open in Telegram
-          </a>
+          <TelegramLink className="mt-4 inline-block bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600" />
         </div>
       </div>
     );
