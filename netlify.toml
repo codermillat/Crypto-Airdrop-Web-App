@@ -7,19 +7,6 @@
   NODE_VERSION = "18"
   NODE_ENV = "production"
 
-# Production context
-[context.production]
-  environment = { NODE_ENV = "production" }
-
-# Deploy Preview context
-[context.deploy-preview]
-  environment = { NODE_ENV = "production" }
-
-# Branch Deploy context
-[context.branch-deploy]
-  environment = { NODE_ENV = "production" }
-
-# Headers to secure the application
 [[headers]]
   for = "/*"
   [headers.values]
@@ -27,11 +14,15 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Cross-Origin-Embedder-Policy = "credentialless"
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Resource-Policy = "cross-origin"
     Content-Security-Policy = """
       default-src 'self';
       script-src 'self' 'unsafe-inline' 'unsafe-eval';
       style-src 'self' 'unsafe-inline';
       img-src 'self' data: https: blob:;
+      font-src 'self';
       connect-src 'self' https://*.supabase.co https://api.telegram.org https://*.tonapi.io https://*.ton.org https://raw.githubusercontent.com;
       frame-ancestors 'none';
       form-action 'self';
@@ -40,13 +31,11 @@
     """
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
 
-# Redirect all routes to index.html for SPA
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
-# Enable brotli compression
 [build.processing]
   skip_processing = false
 [build.processing.css]

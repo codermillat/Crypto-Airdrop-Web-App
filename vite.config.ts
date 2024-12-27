@@ -4,24 +4,21 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
-    host: true, // Allow connections from all hosts
-    cors: true, // Enable CORS
+    host: true,
+    cors: {
+      origin: '*',
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Wallet-Address'],
+      credentials: true
+    },
     proxy: {
       '/api': {
         target: process.env.VITE_API_URL || 'http://localhost:3000',
         changeOrigin: true,
-        secure: false, // Allow self-signed certificates in development
+        secure: false,
         ws: true,
         rewrite: (path) => path.replace(/^\/api/, '')
-      },
-    },
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
-      'Cross-Origin-Embedder-Policy': 'require-corp',
-      'Cross-Origin-Opener-Policy': 'same-origin',
-      'Cross-Origin-Resource-Policy': 'cross-origin'
+      }
     }
   },
   build: {
@@ -37,11 +34,13 @@ export default defineConfig({
             'zustand',
             'axios'
           ],
-          ui: ['lucide-react'],
-        },
-      },
+          ui: ['lucide-react']
+        }
+      }
     },
     chunkSizeWarningLimit: 1000
   },
-  envPrefix: 'VITE_'
+  optimizeDeps: {
+    exclude: ['@tonconnect/ui-react']
+  }
 });
