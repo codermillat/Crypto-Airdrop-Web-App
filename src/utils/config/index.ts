@@ -21,19 +21,19 @@ export const getConfig = (): Config => {
 
   if (isDevelopment) {
     return {
-      botToken: import.meta.env.VITE_TELEGRAM_BOT_TOKEN || DEFAULT_DEV_CONFIG.botToken,
-      botUsername: import.meta.env.VITE_TELEGRAM_BOT_USERNAME || DEFAULT_DEV_CONFIG.botUsername,
-      apiUrl: import.meta.env.VITE_API_URL || DEFAULT_DEV_CONFIG.apiUrl,
+      botToken: process.env.VITE_TELEGRAM_BOT_TOKEN || DEFAULT_DEV_CONFIG.botToken,
+      botUsername: process.env.VITE_TELEGRAM_BOT_USERNAME || DEFAULT_DEV_CONFIG.botUsername,
+      apiUrl: process.env.VITE_API_URL || DEFAULT_DEV_CONFIG.apiUrl,
       siteUrl: baseUrl || DEFAULT_DEV_CONFIG.siteUrl,
-      isDebug: import.meta.env.VITE_DEBUG_MODE === 'true' || DEFAULT_DEV_CONFIG.isDebug
+      isDebug: process.env.VITE_DEBUG_MODE === 'true' || DEFAULT_DEV_CONFIG.isDebug
     };
   }
 
   return {
-    botToken: import.meta.env.VITE_TELEGRAM_BOT_TOKEN || '',
-    botUsername: import.meta.env.VITE_TELEGRAM_BOT_USERNAME || '',
-    apiUrl: import.meta.env.VITE_API_URL || '',
+    botToken: process.env.VITE_TELEGRAM_BOT_TOKEN || '',
+    botUsername: process.env.VITE_TELEGRAM_BOT_USERNAME || '',
+    apiUrl: process.env.VITE_API_URL || '',
     siteUrl: baseUrl,
-    isDebug: import.meta.env.VITE_DEBUG_MODE === 'true'
+    isDebug: process.env.VITE_DEBUG_MODE === 'true'
   };
 };
