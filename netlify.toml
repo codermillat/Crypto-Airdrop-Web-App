@@ -1,2 +1,2 @@
 [build.environment]
-  NODE_ENV = "production"
+  NODE_ENV = "development"
