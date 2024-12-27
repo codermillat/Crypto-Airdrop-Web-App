@@ -31,10 +31,12 @@
       default-src 'self';
       script-src 'self' 'unsafe-inline' 'unsafe-eval';
       style-src 'self' 'unsafe-inline';
-      img-src 'self' data: https: *.githubusercontent.com *.tonflow.net;
-      connect-src 'self' https://*.supabase.co https://api.telegram.org https://raw.githubusercontent.com https://*.tonflow.net;
+      img-src 'self' data: https: blob:;
+      connect-src 'self' https://*.supabase.co https://api.telegram.org https://*.tonapi.io https://*.ton.org;
       frame-ancestors 'none';
       form-action 'self';
+      base-uri 'self';
+      object-src 'none';
     """
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
 
