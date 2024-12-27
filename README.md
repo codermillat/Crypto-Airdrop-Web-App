@@ -56,63 +56,63 @@ The application is split into:
 
 ## Step 2: Render Backend Deployment
 
-1. Create new Web Service:
-   ```
-   a. Go to Render Dashboard
-   b. Click "New +" → Web Service
-   c. Connect your GitHub repository
-   ```
+This section details the steps to deploy the backend API of the PAWS Crypto Airdrop platform on Render.
 
-2. Configure the service:
-   ```
-   Name: paws-crypto-api
-   Region: Choose closest to your users
-   Branch: main
-   Root Directory: ./
-   Runtime: Node
-   Build Command: npm install
-   Start Command: node server/index.js
-   ```
+1. **Create a New Web Service:**
+   - Log in to your Render account.
+   - Navigate to your dashboard and click on **New +**, then select **Web Service**.
+   - Connect your GitHub, GitLab, Bitbucket, or Azure DevOps repository where your backend code is hosted.
 
-3. Add environment variables:
-   ```
-   MONGODB_URI=your_mongodb_atlas_connection_string
-   JWT_SECRET=your_secure_jwt_secret
-   URL=https://your-netlify-app-name.netlify.app
-   PORT=10000
-   NODE_ENV=production
-   ```
+2. **Configure the Service:**
+   - **Name:** Choose a name for your backend service (e.g., `paws-crypto-api`).
+   - **Region:** Select the region closest to your target users for better latency.
+   - **Branch:** Set the branch to `main` (or your main development branch).
+   - **Root Directory:** Specify the root directory of your backend code (`./`).
+   - **Runtime:** Choose **Node**.
+   - **Build Command:** `npm install`
+   - **Start Command:** `node server/index.js`
 
-4. Deploy the service and note the URL (e.g., https://paws-crypto-api.onrender.com)
+3. **Add Environment Variables:**
+   - In the Render dashboard for your web service, go to the **Environment** section.
+   - Add the following environment variables. Replace the placeholder values with your actual configuration:
+     - `MONGODB_URI`: Your MongoDB Atlas connection string.
+     - `JWT_SECRET`: A secure secret key for JWT signing.
+     - `URL`: The URL of your Netlify frontend (e.g., `https://your-app-name.netlify.app`). This is used for CORS configuration.
+     - `PORT`: Set this to `10000`.
+     - `NODE_ENV`: Set this to `production`.
+
+4. **Deploy the Service:**
+   - Save your configuration. Render will automatically start the deployment process.
+   - Once deployed, your backend API will be accessible at a `onrender.com` URL (e.g., `https://paws-crypto-api.onrender.com`). Make a note of this URL, as you'll need it to configure the frontend.
 
 ## Step 3: Netlify Frontend Deployment
 
-1. Update frontend configuration:
-   ```
-   a. Create .env.production in project root:
-   VITE_API_URL=https://your-render-api-url/api
-   ```
+This section outlines the steps to deploy the frontend of the PAWS Crypto Airdrop platform on Netlify.
 
-2. Configure Netlify deployment:
-   ```
-   a. Go to Netlify Dashboard
-   b. Add new site → Import from Git
-   c. Connect to your repository
-   ```
-
-3. Configure build settings:
-   ```
-   Base directory: ./
-   Build command: npm run build
-   Publish directory: dist
-   ```
-
-4. Add environment variables:
+1. **Update Frontend Configuration:**
+   Create a `.env.production` file in the root of your project and add the following environment variable, replacing `https://your-render-api-url/api` with the actual URL of your deployed Render backend:
    ```
    VITE_API_URL=https://your-render-api-url/api
    ```
 
-5. Deploy site and note the URL (e.g., https://paws-crypto.netlify.app)
+2. **Configure Netlify Deployment:**
+   - Log in to your Netlify account.
+   - Click **Add new site** and select **Import from Git**.
+   - Connect to your GitHub, GitLab, Bitbucket, or Azure DevOps repository.
+   - Pick the repository for your PAWS Crypto Airdrop project.
+
+3. **Configure Build Settings:**
+   - **Base directory:**  Ensure this is set to the root of your repository (`./`).
+   - **Build command:** `npm run build`
+   - **Publish directory:** `dist`
+
+4. **Add Environment Variables:**
+   - In the Netlify dashboard for your site, go to **Site settings** -> **Environment** -> **Environment variables**.
+   - Add the `VITE_API_URL` environment variable, using the URL of your deployed Render backend as the value.
+
+5. **Deploy Your Site:**
+   - Once the build settings and environment variables are configured, Netlify will automatically start the deployment process.
+   - After deployment, your site will be available at a `netlify.app` URL (e.g., `https://your-app-name.netlify.app`). Note this URL, as you'll need it for the backend CORS configuration and the TonConnect manifest.
 
 ## Step 4: CORS Configuration
 
@@ -234,6 +234,20 @@ For deployment issues:
    - Netlify: support@netlify.com
    - Render: support@render.com
    - MongoDB Atlas: https://support.mongodb.com
+
+## Production .env File
+
+Create a `.env` file in the root of your project for production environment variables. This file should include the following variables:
+
+```
+MONGODB_URI=your_mongodb_atlas_connection_string
+JWT_SECRET=your_secure_jwt_secret
+```
+
+- `MONGODB_URI`: Replace `your_mongodb_atlas_connection_string` with the actual connection string from your MongoDB Atlas setup.
+- `JWT_SECRET`: Replace `your_secure_jwt_secret` with a strong, randomly generated secret key for signing JWTs.
+
+**Note:** Ensure this file is added to your `.gitignore` to prevent sensitive information from being committed to your repository.
 
 ## License
 

@@ -18,8 +18,7 @@ const userSchema = new Schema({
   telegramId: {
     type: String,
     required: true,
-    unique: true,
-    index: true
+    unique: true
   },
   points: {
     type: Number,
@@ -42,8 +41,7 @@ const userSchema = new Schema({
   referralCode: {
     type: String,
     required: true,
-    unique: true,
-    index: true
+    unique: true
   },
   referredBy: {
     type: Schema.Types.ObjectId,
@@ -73,7 +71,5 @@ userSchema.pre('save', async function(next) {
 
 // Add indexes for performance
 userSchema.index({ points: -1 });
-userSchema.index({ telegramId: 1 }, { unique: true });
-userSchema.index({ referralCode: 1 }, { unique: true });
 
 export default model('User', userSchema);
