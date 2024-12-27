@@ -34,7 +34,6 @@ export default defineConfig({
             'zustand',
             'axios'
           ],
-          crypto: ['tweetnacl', 'tweetnacl-util'],
           ui: ['lucide-react']
         }
       }
@@ -42,6 +41,6 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000
   },
   optimizeDeps: {
-    include: ['tweetnacl', 'tweetnacl-util']
+    exclude: ['@tonconnect/ui-react']
   }
 });
