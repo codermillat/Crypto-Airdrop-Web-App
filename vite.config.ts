@@ -15,6 +15,7 @@ export default defineConfig({
     },
   },
   build: {
+    sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -30,8 +31,7 @@ export default defineConfig({
         },
       },
     },
-    chunkSizeWarningLimit: 1000,
-    sourcemap: true
+    chunkSizeWarningLimit: 1000
   },
   envPrefix: 'VITE_'
 });
