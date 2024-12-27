@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
-import { isTelegramEnvironment, validateTelegramEnvironment } from '../utils/telegram/environment/detection';
+import { isTelegramWebApp, validateTelegramEnvironment } from '../utils/telegram/environment/detection';
 import { debugTelegramEnvironment } from '../utils/telegram/debug';
 import { initializeWebApp } from '../utils/telegram/webapp/initialization';
 
@@ -16,7 +16,7 @@ const TelegramAppCheck: React.FC<{ children: React.ReactNode }> = ({ children })
         debugTelegramEnvironment();
         
         // First check if we're in Telegram environment
-        if (!isTelegramEnvironment()) {
+        if (!isTelegramWebApp()) {
           setError('Please open this app in Telegram');
           setIsValidPlatform(false);
           return;
@@ -45,7 +45,7 @@ const TelegramAppCheck: React.FC<{ children: React.ReactNode }> = ({ children })
     };
 
     // Increased delay to ensure Telegram WebApp API is fully loaded
-    const timeoutId = setTimeout(checkPlatform, 1000);
+    const timeoutId = setTimeout(checkPlatform, 3000);
     return () => clearTimeout(timeoutId);
   }, []);
 

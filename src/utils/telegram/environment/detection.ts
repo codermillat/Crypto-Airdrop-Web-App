@@ -21,3 +21,17 @@ export const isTelegramWebApp = (): boolean => {
     return false;
   }
 };
+
+export const isTelegramEnvironment = isTelegramWebApp;
+
+export const validateTelegramEnvironment = (): string | null => {
+  try {
+    if (window.Telegram?.WebApp?.platform === 'bot') {
+      return 'Please open this app in the Telegram app, not a bot.';
+    }
+    return null;
+  } catch (error) {
+    debugLog('Error validating Telegram environment:', error);
+    return 'Error validating Telegram environment.';
+  }
+};

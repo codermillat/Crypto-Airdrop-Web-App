@@ -82,7 +82,7 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
     const initializeWallet = async () => {
       try {
         if (!tonConnectUI) {
-          throw new Error('TON Connect UI not available');
+          throw new Error('TON Connect UI not available. Please install TON Wallet.');
         }
         
         setError(null);
@@ -91,7 +91,7 @@ const WalletProvider: React.FC<Props> = ({ children }) => {
         const timeoutPromise = new Promise((_, reject) => {
           initTimeout = setTimeout(() => {
             reject(new Error('Wallet initialization timed out'));
-          }, 10000);
+          }, 30000);
         });
 
         // Race between connection restoration and timeout
