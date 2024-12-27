@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { initializeWebApp } from '../utils/telegram/webapp/initialization';
-import { isTelegramWebApp } from '../utils/telegram/environment/detection';
+import { isTelegramWebApp } from '../utils/telegram/detection';
 import LoadingState from './LoadingState';
 
 const TelegramCheck: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -17,7 +17,13 @@ const TelegramCheck: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         setIsValid(true);
         setError(null);
       } catch (err: any) {
-        setError(err.message || 'Failed to initialize Telegram WebApp');
+        if (err.message === 'Telegram WebApp is not available') {
+          setError('Telegram WebApp is not available');
+        } else if (err.message === 'WebApp initialization timed out') {
+          setError('WebApp initialization timed out');
+        } else {
+          setError('Failed to initialize Telegram WebApp');
+        }
         setIsValid(false);
       } finally {
         setIsInitializing(false);
@@ -28,7 +34,12 @@ const TelegramCheck: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   }, []);
 
   if (isInitializing) {
-    return <LoadingState message="Initializing Telegram WebApp..." />;
+    return (
+      <div className="flex flex-col justify-center items-center py-8">
+        <LoadingState />
+        <p className="mt-4 text-gray-400">Initializing Telegram WebApp...</p>
+      </div>
+    );
   }
 
   if (!isValid || error) {
