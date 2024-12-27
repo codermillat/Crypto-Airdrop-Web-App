@@ -10,12 +10,10 @@ services:
       - key: JWT_SECRET
         sync: false
       - key: URL
-        value: https://crypto-airdrop-paws.netlify.app
+        sync: false
       - key: VITE_APP_URL
-        value: https://crypto-airdrop-paws.netlify.app
+        sync: false
       - key: PORT
-        value: 10000
+        sync: false
       - key: NODE_ENV
         value: production
-      - key: VITE_TELEGRAM_BOT_TOKEN
-        value: 7395999208:AAHD-3nVoIWFDF1uAGOWGCTmmMut4J2AXzM
