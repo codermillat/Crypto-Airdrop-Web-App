@@ -2,14 +2,14 @@ import { WalletsListConfiguration } from '@tonconnect/ui-react';
 
 // Simplified wallet configuration to avoid compatibility issues
 export const getWalletsConfig = (): WalletsListConfiguration => ({
-  includeWallets: [{ 
+  includeWallets: [{
     name: 'tonkeeper',
-    appName: 'My Airdrop App', // Replace with actual app name
-    imageUrl: '/tonkeeper.png', // Replace with actual image path
+    appName: 'TonFunZone',
+    imageUrl: '/logo.png',
     aboutUrl: 'https://tonkeeper.com/',
     platforms: ['ios', 'android', 'chrome', 'firefox', 'safari'],
-    universalLink: 'https://tonkeeper.com/app', // Placeholder
-    bridgeUrl: 'https://bridge.tonapi.io/' // Placeholder
+    universalLink: 'https://tonkeeper.com/app',
+    bridgeUrl: 'https://bridge.tonapi.io/'
   }],
   // Remove walletsList to prevent the jsBridgeKey error
 });

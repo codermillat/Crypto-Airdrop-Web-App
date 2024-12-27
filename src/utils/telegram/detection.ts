@@ -5,11 +5,6 @@ import { hasTelegramProxy } from './detection/proxy';
 
 export const isTelegramWebApp = (): boolean => {
   try {
-    // In development, bypass Telegram check
-    if (import.meta.env.DEV) {
-      debugLog('Development mode - bypassing Telegram check');
-      return true;
-    }
 
     // Primary check: WebApp API
     if (window.Telegram?.WebApp) {
