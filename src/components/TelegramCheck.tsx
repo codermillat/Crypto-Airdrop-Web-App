@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
 import { initializeWebApp } from '../utils/telegram/webapp/initialization';
-import { isTelegramWebApp } from '../utils/telegram/detection';
 import LoadingState from './LoadingState';
 
 const TelegramCheck: React.FC<{ children: React.ReactNode }> = ({ children }) => {
