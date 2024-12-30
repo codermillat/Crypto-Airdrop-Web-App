@@ -34,7 +34,9 @@ export const initializeWebApp = async (): Promise<void> => {
 
     // Configure WebApp
     webApp.expand();
-    webApp.enableClosingConfirmation();
+    if (typeof webApp.enableClosingConfirmation === 'function') {
+      webApp.enableClosingConfirmation();
+    }
 
     // Set theme colors
     if (typeof webApp.setHeaderColor === 'function') {
@@ -54,7 +56,11 @@ export const initializeWebApp = async (): Promise<void> => {
 
     console.log('Telegram WebApp initialized successfully with initData:', webApp.initData);
   } catch (error) {
-    console.error('Failed to initialize Telegram WebApp:', error);
+    if (error instanceof Error) {
+      console.error('Failed to initialize Telegram WebApp:', error.message, error.stack);
+    } else {
+      console.error('Failed to initialize Telegram WebApp:', error);
+    }
     throw error;
   }
 };
