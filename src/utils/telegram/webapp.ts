@@ -22,10 +22,13 @@ export const waitForWebApp = async (): Promise<TelegramWebApp> => {
 
 export const initializeWebApp = async (): Promise<void> => {
   try {
+    console.log('Attempting to initialize Telegram WebApp...');
     const webApp = await waitForWebApp();
+    console.log('Telegram WebApp object:', webApp);
 
     // Ensure we're in a valid Telegram WebApp environment
     if (!webApp.initDataUnsafe?.user?.id) {
+      console.error('initDataUnsafe does not contain a valid user ID:', webApp.initDataUnsafe);
       throw new Error('Invalid Telegram WebApp environment');
     }
 
@@ -34,10 +37,10 @@ export const initializeWebApp = async (): Promise<void> => {
     webApp.enableClosingConfirmation();
 
     // Set theme colors
-    if (webApp.setHeaderColor) {
+    if (typeof webApp.setHeaderColor === 'function') {
       webApp.setHeaderColor('#000000');
     }
-    if (webApp.setBackgroundColor) {
+    if (typeof webApp.setBackgroundColor === 'function') {
       webApp.setBackgroundColor('#000000');
     }
 
@@ -49,7 +52,7 @@ export const initializeWebApp = async (): Promise<void> => {
     // Mark as ready
     webApp.ready();
 
-    console.log('Telegram WebApp initialized successfully');
+    console.log('Telegram WebApp initialized successfully with initData:', webApp.initData);
   } catch (error) {
     console.error('Failed to initialize Telegram WebApp:', error);
     throw error;
