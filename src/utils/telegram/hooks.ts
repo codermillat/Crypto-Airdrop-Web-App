@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { TelegramUser, TelegramWebApp } from '../../types/telegram';
+import { ValidationError } from './validation';
 import { getWebApp } from './webapp';
-import { validateTelegramUser } from './validation';
+import { validateWebAppUser } from './validation';
 
 interface WebAppTheme {
   colorScheme: 'light' | 'dark';
@@ -16,23 +17,23 @@ interface WebAppViewport {
 
 export const useWebAppUser = () => {
   const [user, setUser] = useState<TelegramUser | null>(null);
-  const [error, setError] = useState<Error | null>(null);
+  const [error, setError] = useState<ValidationError | null>(null);
 
   useEffect(() => {
     try {
       const webApp = getWebApp();
       const userData = webApp?.initDataUnsafe?.user;
 
-      if (!validateTelegramUser(userData)) {
-        throw new Error('Invalid or missing user data');
+      if (!validateWebAppUser(userData)) {
+        throw new ValidationError('Invalid or missing user data');
       }
 
-      setUser(userData || null);
+      setUser(userData);
       setError(null);
     } catch (err) {
       console.error('Error getting WebApp user:', err);
       setUser(null);
-      setError(err instanceof Error ? err : new Error('Failed to get user data'));
+      setError(err instanceof ValidationError ? err : new ValidationError('Failed to get user data'));
     }
   }, []);
 
@@ -57,8 +58,11 @@ export const useWebAppTheme = () => {
     };
 
     updateTheme();
-    // Add event listeners if available
-    // Example: webApp.onThemeChanged(updateTheme);
+    webApp.onEvent('themeChanged', updateTheme);
+
+    return () => {
+      webApp.offEvent('themeChanged', updateTheme);
+    };
   }, []);
 
   return theme;
@@ -84,8 +88,11 @@ export const useWebAppViewport = () => {
     };
 
     updateViewport();
-    // Add event listeners if available
-    // Example: webApp.onViewportChanged(updateViewport);
+    webApp.onEvent('viewportChanged', updateViewport);
+
+    return () => {
+      webApp.offEvent('viewportChanged', updateViewport);
+    };
   }, []);
 
   return viewport;
@@ -152,7 +159,9 @@ export const useBackButton = () => {
     const webApp = getWebApp();
     if (!webApp?.BackButton) return;
 
-    webApp.BackButton.hide();
+    return () => {
+      webApp.BackButton.hide();
+    };
   }, []);
 
   const show = () => {
@@ -175,7 +184,7 @@ export const useBackButton = () => {
     const webApp = getWebApp();
     if (!webApp?.BackButton) return;
 
-    webApp.BackButton.onClick(callback as () => void);
+    webApp.BackButton.onClick(callback);
     return () => webApp.BackButton.offClick(callback);
   };
 
