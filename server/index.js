@@ -11,9 +11,19 @@ import { verifyWallet } from './middleware/auth.js';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 3000;
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/paws_crypto';
-const FRONTEND_URL = process.env.VITE_APP_URL || 'http://localhost:5173';
+const port = process.env.PORT || 10000;
+const MONGODB_URI = process.env.MONGODB_URI;
+const FRONTEND_URL = process.env.URL;
+
+if (!MONGODB_URI) {
+  console.error('MONGODB_URI is required');
+  process.exit(1);
+}
+
+if (!FRONTEND_URL) {
+  console.error('Frontend URL is required');
+  process.exit(1);
+}
 
 // CORS configuration
 app.use(cors({
@@ -24,9 +34,7 @@ app.use(cors({
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'x-wallet-address'],
-  exposedHeaders: ['Access-Control-Allow-Origin'],
-  maxAge: 86400
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-wallet-address']
 }));
 
 // Security headers
@@ -34,28 +42,15 @@ app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   next();
 });
 
 app.use(express.json());
 
-// Request logging in development
-if (process.env.NODE_ENV !== 'production') {
-  app.use((req, res, next) => {
-    console.log(`${req.method} ${req.path}`, {
-      headers: req.headers,
-      body: req.body,
-      query: req.query
-    });
-    next();
-  });
-}
-
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/health', (req, res) => {
   res.json({ 
-    status: 'ok', 
+    status: 'ok',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
     database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
@@ -68,25 +63,16 @@ app.use('/api/admin', verifyWallet, adminRoutes);
 app.use('/api/data', verifyWallet, dataRoutes);
 app.use('/api/user', verifyWallet, userRoutes);
 
-// Error handling middleware
+// Error handling
 app.use((err, req, res, next) => {
   console.error('Error:', err);
-  res.status(err.status || 500).json({ 
+  res.status(err.status || 500).json({
     error: err.message || 'Internal server error',
     status: err.status || 500
   });
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ 
-    error: 'Resource not found',
-    status: 404,
-    path: req.path
-  });
-});
-
-// Start server and connect to database
+// Start server
 const startServer = async () => {
   try {
     await connect(MONGODB_URI, {
@@ -95,7 +81,7 @@ const startServer = async () => {
       retryWrites: true,
       w: 'majority'
     });
-    console.log('Connected to MongoDB successfully');
+    console.log('Connected to MongoDB');
     
     app.listen(port, () => {
       console.log(`Server running on port ${port}`);
