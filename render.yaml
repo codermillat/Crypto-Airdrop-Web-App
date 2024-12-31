@@ -2,8 +2,8 @@ services:
   - type: web
     name: paws-crypto-api
     runtime: node
-    buildCommand: npm install && npm run build
-    startCommand: node server/index.js
+    buildCommand: cd server && npm install
+    startCommand: cd server && node index.js
     envVars:
       - key: MONGODB_URI
         sync: false
@@ -17,11 +17,3 @@ services:
         value: production
     autoDeploy: true
     healthCheckPath: /api/health
-    disk:
-      name: tmp
-      mountPath: /tmp
-      sizeGB: 1
-    scaling:
-      minInstances: 1
-      maxInstances: 3
-      targetMemoryPercent: 80
