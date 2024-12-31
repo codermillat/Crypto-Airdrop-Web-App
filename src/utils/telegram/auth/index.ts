@@ -1,8 +1,4 @@
-import { validateInitData, validateAuthDate } from './validation';
-import { TelegramAuthError } from './errors';
-
-export {
-  validateInitData,
-  validateAuthDate,
-  TelegramAuthError
-};
+export { validateInitData, validateAuthDate } from './validation';
+export { createAuthSession, validateSession } from './session';
+export { authenticateUser } from './api';
+export { ValidationError } from './validation';

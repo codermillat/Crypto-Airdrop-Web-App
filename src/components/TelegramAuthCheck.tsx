@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AlertCircle } from 'lucide-react';
-import { validateInitData } from '../utils/telegram/auth';
+import { validateInitData } from '../utils/telegram/auth/validation';
 import LoadingState from './LoadingState';
 import TelegramLink from './common/TelegramLink';
 
