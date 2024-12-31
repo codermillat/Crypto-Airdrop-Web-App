@@ -2,7 +2,7 @@ services:
   - type: web
     name: paws-crypto-api
     runtime: node
-    buildCommand: npm install
+    buildCommand: npm install && npm run build
     startCommand: node server/index.js
     envVars:
       - key: MONGODB_URI
