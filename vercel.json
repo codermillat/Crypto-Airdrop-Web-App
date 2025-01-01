@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "VITE_TELEGRAM_BOT_TOKEN": "@telegram_bot_token",
+    "VITE_TELEGRAM_BOT_USERNAME": "@telegram_bot_username",
+    "VITE_API_URL": "@api_url",
+    "VITE_SITE_URL": "@site_url",
+    "VITE_DEBUG_MODE": "false"
+  }
+}

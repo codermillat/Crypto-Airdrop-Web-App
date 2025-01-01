@@ -1,42 +1,19 @@
-// Environment variable types
-interface EnvConfig {
-  apiUrl: string;
-  debugMode: boolean;
-  telegramBotToken: string;
-  telegramBotUsername: string;
-  siteUrl: string;
-  appUrl: string;
-  nodeEnv: string;
-}
+import { EnvConfig } from './types';
+import { ENV_DEFAULTS } from './constants';
+import { validateEnv } from './validation';
 
-// Validate required environment variables
-const validateEnv = (): void => {
-  const required = [
-    'VITE_API_URL',
-    'VITE_TELEGRAM_BOT_TOKEN',
-    'VITE_TELEGRAM_BOT_USERNAME',
-    'VITE_SITE_URL',
-    'VITE_APP_URL'
-  ];
-
-  const missing = required.filter(key => !import.meta.env[key]);
-  
-  if (missing.length > 0) {
-    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
-  }
-};
-
-// Get environment configuration
-export const getEnvConfig = (): EnvConfig => {
+export const getEnvironmentConfig = (): EnvConfig => {
   validateEnv();
 
   return {
-    apiUrl: import.meta.env.VITE_API_URL,
-    debugMode: import.meta.env.VITE_DEBUG_MODE === 'true',
-    telegramBotToken: import.meta.env.VITE_TELEGRAM_BOT_TOKEN,
-    telegramBotUsername: import.meta.env.VITE_TELEGRAM_BOT_USERNAME,
-    siteUrl: import.meta.env.VITE_SITE_URL,
-    appUrl: import.meta.env.VITE_APP_URL,
-    nodeEnv: import.meta.env.NODE_ENV
+    apiUrl: import.meta.env.VITE_API_URL || ENV_DEFAULTS.apiUrl,
+    siteUrl: import.meta.env.VITE_SITE_URL || ENV_DEFAULTS.siteUrl,
+    appUrl: import.meta.env.VITE_SITE_URL || ENV_DEFAULTS.appUrl,
+    botToken: import.meta.env.VITE_TELEGRAM_BOT_TOKEN || ENV_DEFAULTS.botToken,
+    botUsername: import.meta.env.VITE_TELEGRAM_BOT_USERNAME || ENV_DEFAULTS.botUsername,
+    isDebug: import.meta.env.VITE_DEBUG_MODE === 'true' || ENV_DEFAULTS.isDebug
   };
 };
+
+export const isDevelopment = (): boolean => import.meta.env.DEV;
+export const isProduction = (): boolean => import.meta.env.PROD;

@@ -1,6 +1,6 @@
 import CryptoJS from 'crypto-js';
+import { getEnvironmentConfig } from '../../config/environment';
 import { debugLog } from '../debug';
-import { getConfig } from '../../config';
 
 export class ValidationError extends Error {
   constructor(message: string) {
@@ -28,7 +28,7 @@ export const validateInitData = (initData: string): boolean => {
       .map(([key, value]) => `${key}=${value}`)
       .join('\n');
 
-    const { botToken } = getConfig();
+    const { botToken } = getEnvironmentConfig();
     
     // Generate secret key from bot token
     const secretKey = CryptoJS.HmacSHA256(botToken, 'WebAppData');
