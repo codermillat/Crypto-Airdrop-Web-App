@@ -8,7 +8,6 @@ import {
   Outlet
 } from 'react-router-dom';
 import AppProvider from './providers/app/AppProvider';
-import TelegramAuthCheck from './components/TelegramAuthCheck';
 import MainLayout from './layouts/MainLayout';
 import Home from './pages/Home';
 import Tasks from './pages/Tasks';
@@ -32,9 +31,7 @@ const router = createBrowserRouter(
 
 const App: React.FC = () => (
   <AppProvider>
-    <TelegramAuthCheck>
-      <RouterProvider router={router} />
-    </TelegramAuthCheck>
+    <RouterProvider router={router} />
   </AppProvider>
 );
 

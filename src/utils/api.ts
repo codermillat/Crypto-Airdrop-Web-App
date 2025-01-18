@@ -22,12 +22,8 @@ api.interceptors.response.use(
 );
 
 // Export API methods
-export const registerUser = async (username: string, telegramId: string) => {
-  const response = await api.post('/auth/register', { 
-    username, 
-    telegramId,
-    useTelegramUsername: true 
-  });
+export const registerUser = async (username: string) => {
+  const response = await api.post('/auth/register', { username });
   return response.data;
 };
 

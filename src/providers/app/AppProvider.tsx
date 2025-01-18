@@ -13,9 +13,7 @@ const AppProvider: React.FC<Props> = ({ children }) => {
     <ErrorBoundary>
       <TonProvider>
         <WalletProvider>
-          <BrowserRouter>
-            {children}
-          </BrowserRouter>
+          {children}
         </WalletProvider>
       </TonProvider>
     </ErrorBoundary>
