@@ -13,7 +13,7 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 10000;
 const MONGODB_URI = process.env.MONGODB_URI;
-const FRONTEND_URL = process.env.URL;
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
 if (!MONGODB_URI) {
   console.error('MONGODB_URI is required');
