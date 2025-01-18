@@ -7,28 +7,25 @@ export const initializeWebApp = async (): Promise<void> => {
   try {
     debugLog('Starting WebApp initialization');
 
-    // Check if we're in development mode
-    if (import.meta.env.DEV) {
-      debugLog('Development mode - skipping WebApp initialization');
+    // Skip initialization for browser access
+    if (!window.Telegram?.WebApp) {
+      debugLog('Browser environment detected - skipping WebApp initialization');
       return;
     }
 
-    // Perform initial checks and wait for WebApp to be ready
+    // Only proceed with Telegram-specific initialization if in Telegram
     await performInitialChecks();
-
-    // Get WebApp instance
+    
     const webApp = window.Telegram?.WebApp;
-    if (!webApp) {
-      throw new WebAppError('Telegram WebApp not available');
+    if (webApp) {
+      configureWebApp(webApp);
     }
-
-    // Configure WebApp
-    configureWebApp(webApp);
 
     debugLog('WebApp initialization completed successfully');
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Failed to initialize WebApp';
     debugLog('WebApp initialization failed:', errorMessage);
-    throw new WebAppError(errorMessage);
+    // Don't throw error to allow browser access
+    console.warn(errorMessage);
   }
 };
